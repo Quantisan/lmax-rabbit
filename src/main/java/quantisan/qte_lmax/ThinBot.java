@@ -7,11 +7,11 @@ import com.lmax.api.heartbeat.HeartbeatCallback;
 import com.lmax.api.heartbeat.HeartbeatEventListener;
 import com.lmax.api.heartbeat.HeartbeatRequest;
 import com.lmax.api.heartbeat.HeartbeatSubscriptionRequest;
-import com.lmax.api.order.*;
 import com.lmax.api.orderbook.OrderBookEvent;
 import com.lmax.api.orderbook.OrderBookEventListener;
+import com.lmax.api.orderbook.OrderBookSubscriptionRequest;
 
-public class SimpleBot implements LoginCallback, HeartbeatEventListener, OrderBookEventListener, Runnable {
+public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBookEventListener, Runnable {
     private final static int HEARTBEAT_PERIOD = 2 * 60 * 1000;
 
     private Session session;
@@ -20,17 +20,17 @@ public class SimpleBot implements LoginCallback, HeartbeatEventListener, OrderBo
         String demoUrl = "https://testapi.lmaxtrader.com";
         LmaxApi lmaxApi = new LmaxApi(demoUrl);
 
-        SimpleBot simpleBot = new SimpleBot();
-        lmaxApi.login(new LoginRequest("quantisan2", "J63VFqmXBaQStdAxKnD7", LoginRequest.ProductType.CFD_DEMO), simpleBot);
+        ThinBot thinBot = new ThinBot();
+        lmaxApi.login(new LoginRequest("quantisan2", "J63VFqmXBaQStdAxKnD7", LoginRequest.ProductType.CFD_DEMO), thinBot);
     }
 
     @Override
     public void onLoginSuccess(Session session) {
         System.out.printf("Logged in, account details: %s%n", session.getAccountDetails());
 
-
         this.session = session;
         session.registerHeartbeatListener(this);
+        session.registerOrderBookEventListener(this);
 
         session.subscribe(new HeartbeatSubscriptionRequest(), new Callback()
         {
@@ -43,26 +43,39 @@ public class SimpleBot implements LoginCallback, HeartbeatEventListener, OrderBo
             }
         });
 
-        session.registerOrderBookEventListener(this);
-
         new Thread(this).start();  // heartbeat request
         session.start();
     }
 
     @Override
     public void onLoginFailure(FailureResponse failureResponse) {
-        System.err.printf("Failed to login, reason: %s%n", failureResponse);
+        throw new RuntimeException("Unable to login: " + failureResponse.getDescription(), failureResponse.getException());
     }
+
+    //******************************************************************************//
+    //   Market data
 
     @Override
     public void notify(OrderBookEvent orderBookEvent) {
         System.out.printf("Market data: %s%n", orderBookEvent);
     }
 
-    private boolean shouldTradeGivenCurrentMarketData(OrderBookEvent orderBookEvent) {
-        return false;
-    }
+    private void subscribeToInstrument(final Session session, final long instrumentId)
+    {
+        session.subscribe(new OrderBookSubscriptionRequest(instrumentId), new Callback()
+        {
+            public void onSuccess()
+            {
+                System.out.printf("Subscribed to instrument %d.%n", instrumentId);
+            }
 
+            public void onFailure(final FailureResponse failureResponse)
+            {
+                System.err.printf("Failed to subscribe to instrument %d: %s%n", instrumentId, failureResponse);
+            }
+        });
+    }
+    //******************************************************************************//
 
     //******************************************************************************//
     //   Heart Beat
