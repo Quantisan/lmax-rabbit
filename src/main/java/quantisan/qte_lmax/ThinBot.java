@@ -11,7 +11,7 @@ import com.lmax.api.orderbook.OrderBookEvent;
 import com.lmax.api.orderbook.OrderBookEventListener;
 import com.lmax.api.orderbook.OrderBookSubscriptionRequest;
 
-public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBookEventListener, Runnable {
+public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBookEventListener, StreamFailureListener, Runnable {
     private final static int HEARTBEAT_PERIOD = 2 * 60 * 1000;
 
     private Session session;
@@ -31,6 +31,7 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
         this.session = session;
         session.registerHeartbeatListener(this);
         session.registerOrderBookEventListener(this);
+        session.registerStreamFailureListener(this);
 
         session.subscribe(new HeartbeatSubscriptionRequest(), new Callback()
         {
@@ -52,12 +53,21 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
         throw new RuntimeException("Unable to login: " + failureResponse.getDescription(), failureResponse.getException());
     }
 
+    @Override
+    public void notifyStreamFailure(Exception e)
+    {
+        System.err.printf("Stream failure: %s", e.getMessage());
+        e.printStackTrace(System.err);
+    }
+
     //******************************************************************************//
     //   Market data
 
     @Override
     public void notify(OrderBookEvent orderBookEvent) {
-        System.out.printf("Market data: %s%n", orderBookEvent);
+        Tick tick = new Tick(orderBookEvent);
+        System.out.println(tick);
+
     }
 
     private void subscribeToInstrument(final Session session, final long instrumentId)
