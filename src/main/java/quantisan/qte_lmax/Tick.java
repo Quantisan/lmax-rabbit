@@ -14,7 +14,6 @@ public class Tick {
     private final FixedPointNumber bidVolume;
     private final FixedPointNumber askPrice;
     private final FixedPointNumber askVolume;
-    public static final Tick ZERO = new Tick(0, 0, FixedPointNumber.ZERO, FixedPointNumber.ZERO, FixedPointNumber.ZERO, FixedPointNumber.ZERO);
 
     public Tick(long timestamp, long instrumentId, FixedPointNumber bidPrice, FixedPointNumber bidVolume, FixedPointNumber askPrice, FixedPointNumber askVolume) {
         this.timestamp = timestamp;

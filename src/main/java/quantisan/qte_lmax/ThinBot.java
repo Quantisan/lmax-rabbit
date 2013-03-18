@@ -8,13 +8,16 @@ import com.lmax.api.heartbeat.HeartbeatEventListener;
 import com.lmax.api.heartbeat.HeartbeatRequest;
 import com.lmax.api.heartbeat.HeartbeatSubscriptionRequest;
 import com.lmax.api.orderbook.*;
+import com.mongodb.*;
 
-import java.util.List;
+import java.net.UnknownHostException;
 
 public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBookEventListener, StreamFailureListener, Runnable {
     private final static int HEARTBEAT_PERIOD = 2 * 60 * 1000;
 
     private Session session;
+    private DBCollection coll;
+
 
     public static void main(String[] args) {
         String demoUrl = "https://testapi.lmaxtrader.com";
@@ -49,6 +52,18 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
 
         subscribeToInstrument(session, 100637);  // Gold
         subscribeToInstrument(session, 100639);  // Silver
+
+        MongoClient mongoClient = null;
+        try {
+            mongoClient = new MongoClient( "localhost" , 27017 );
+        } catch (UnknownHostException e) {
+            throw new RuntimeException("Unable to connect to MongoDB");
+        }
+
+        mongoClient.setWriteConcern(WriteConcern.UNACKNOWLEDGED);
+        DB db = mongoClient.getDB("ticks buffer");
+        coll = db.getCollection("lmax");
+        coll.ensureIndex(new BasicDBObject("Date", 1), new BasicDBObject("expireAfterSeconds", 3600));
 
         new Thread(this).start();  // heartbeat request
         session.start();
