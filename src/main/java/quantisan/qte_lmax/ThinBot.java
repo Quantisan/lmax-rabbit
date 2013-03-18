@@ -7,9 +7,9 @@ import com.lmax.api.heartbeat.HeartbeatCallback;
 import com.lmax.api.heartbeat.HeartbeatEventListener;
 import com.lmax.api.heartbeat.HeartbeatRequest;
 import com.lmax.api.heartbeat.HeartbeatSubscriptionRequest;
-import com.lmax.api.orderbook.OrderBookEvent;
-import com.lmax.api.orderbook.OrderBookEventListener;
-import com.lmax.api.orderbook.OrderBookSubscriptionRequest;
+import com.lmax.api.orderbook.*;
+
+import java.util.List;
 
 public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBookEventListener, StreamFailureListener, Runnable {
     private final static int HEARTBEAT_PERIOD = 2 * 60 * 1000;
@@ -45,9 +45,10 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
         });
 
         for (long instrumentId = 4001; instrumentId < 4018; instrumentId++)
-        {
             subscribeToInstrument(session, instrumentId);
-        }
+
+        subscribeToInstrument(session, 100638);  // Gold
+        subscribeToInstrument(session, 100639);  // Silver
 
         new Thread(this).start();  // heartbeat request
         session.start();
@@ -71,7 +72,7 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
     @Override
     public void notify(OrderBookEvent orderBookEvent) {
         Tick tick = new Tick(orderBookEvent);
-        System.out.println(tick);
+        System.out.println(tick);     // TODO push to mq
 
     }
 
