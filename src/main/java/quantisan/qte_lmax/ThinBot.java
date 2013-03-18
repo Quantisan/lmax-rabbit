@@ -44,6 +44,11 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
             }
         });
 
+        for (long instrumentId = 4001; instrumentId < 4018; instrumentId++)
+        {
+            subscribeToInstrument(session, instrumentId);
+        }
+
         new Thread(this).start();  // heartbeat request
         session.start();
     }
