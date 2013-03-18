@@ -72,8 +72,9 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
     @Override
     public void notify(OrderBookEvent orderBookEvent) {
         Tick tick = new Tick(orderBookEvent);
-        System.out.println(tick);     // TODO push to mq
-
+        if(!tick.isZero()) {
+            System.out.println(tick);     // TODO push to mq
+        }
     }
 
     private void subscribeToInstrument(final Session session, final long instrumentId)

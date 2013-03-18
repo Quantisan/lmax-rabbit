@@ -44,6 +44,10 @@ public class Tick {
         return prices.size() != 0 ? prices.get(0).getQuantity() : FixedPointNumber.ZERO;
     }
 
+    public boolean isZero() {
+        return(this.bidVolume.longValue() == 0 && this.askVolume.longValue() == 0);
+    }
+
     @Override
     public String toString() {
         return(timestamp + "," + instrumentId + "," + bidPrice + "/" + askPrice + "," + bidVolume + "/" + askVolume);
