@@ -137,7 +137,7 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
             @Override
             public void onFailure(FailureResponse failureResponse)
             {
-                throw new RuntimeException("Failed");
+                throw new RuntimeException("Heartbeat failed");
             }
         });
     }
