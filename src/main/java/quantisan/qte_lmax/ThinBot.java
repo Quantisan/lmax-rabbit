@@ -57,7 +57,7 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
         subscribeToInstrument(session, 100637);  // Gold
         subscribeToInstrument(session, 100639);  // Silver
 
-        MongoClient mongoClient = null;
+        MongoClient mongoClient;
         try {
             mongoClient = new MongoClient( "localhost" , 27017 );
         } catch (UnknownHostException e) {
