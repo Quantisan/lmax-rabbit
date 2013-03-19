@@ -21,7 +21,6 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
     private Session session;
     private DB db;
 
-
     public static void main(String[] args) {
         String demoUrl = "https://testapi.lmaxtrader.com";
         LmaxApi lmaxApi = new LmaxApi(demoUrl);
@@ -39,9 +38,10 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
         session.registerOrderBookEventListener(this);
         session.registerStreamFailureListener(this);
 
+        // subscribe to heatbeat //
         session.subscribe(new HeartbeatSubscriptionRequest(), new Callback()
         {
-            public void onSuccess() { };
+            public void onSuccess() { }
 
             @Override
             public void onFailure(final FailureResponse failureResponse)
@@ -50,6 +50,7 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
             }
         });
 
+        // subscribe to instrument data //
         for (long instrumentId = 4001; instrumentId < 4018; instrumentId++)
             subscribeToInstrument(session, instrumentId);
 
@@ -66,7 +67,7 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
         }
 
         mongoClient.setWriteConcern(WriteConcern.UNACKNOWLEDGED);
-        this.db = mongoClient.getDB("ticks_buffer");
+        db = mongoClient.getDB("ticks_buffer");
         DBCollection coll = db.getCollection("lmax");
         coll.ensureIndex(BasicDBObjectBuilder.start().add("Date", 1).get(),
                 BasicDBObjectBuilder.start().add("expireAfterSeconds", 3600).get());
@@ -102,7 +103,12 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
                     append("bidVolume", tick.getBidVolume()).
                     append("askPrice", tick.getAskPrice()).
                     append("askVolume", tick.getAskVolume());
-            coll.insert(item);
+            try {
+                coll.insert(item);
+            } catch (com.mongodb.MongoException e) {
+                logger.error("Cannot write data to MongoDB.", e);
+                session.stop();     // TODO request heartbeat to reconnect to mongo
+            }
         }
     }
 
@@ -136,7 +142,7 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
         this.session.requestHeartbeat(new HeartbeatRequest("token"), new HeartbeatCallback()
         {
             @Override
-            public void onSuccess(String token) { };
+            public void onSuccess(String token) { }
 
             @Override
             public void onFailure(FailureResponse failureResponse)
