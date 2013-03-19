@@ -1,7 +1,6 @@
 package quantisan.qte_lmax;
 
 import com.lmax.api.FixedPointNumber;
-import com.lmax.api.orderbook.Instrument;
 import com.lmax.api.orderbook.OrderBookEvent;
 import com.lmax.api.orderbook.PricePoint;
 
