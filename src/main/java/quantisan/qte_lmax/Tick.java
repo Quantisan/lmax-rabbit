@@ -16,17 +16,21 @@ public class Tick {
     private final FixedPointNumber askPrice;
     private final FixedPointNumber askVolume;
 
-    public Tick(long timestamp, long instrumentId, FixedPointNumber bidPrice, FixedPointNumber bidVolume, FixedPointNumber askPrice, FixedPointNumber askVolume) {
+    private final boolean isMarketHour;
+
+    public Tick(long timestamp, long instrumentId, FixedPointNumber bidPrice, FixedPointNumber bidVolume, FixedPointNumber askPrice, FixedPointNumber askVolume, boolean isMarketHour) {
         this.timestamp = timestamp;
         this.instrumentId = instrumentId;
         this.bidPrice = bidPrice;
         this.bidVolume = bidVolume;
         this.askPrice = askPrice;
         this.askVolume = askVolume;
+        this.isMarketHour = isMarketHour;
     }
 
     public Tick(OrderBookEvent o) {
         this.timestamp = o.getTimeStamp();
+        this.isMarketHour = this.timestamp <= o.getMarketClosePriceTimeStamp();
         this.instrumentId = o.getInstrumentId();
         this.bidPrice = getBestPrice(o.getBidPrices());
         this.bidVolume = getBestVolume(o.getBidPrices());
@@ -44,8 +48,8 @@ public class Tick {
         return prices.size() != 0 ? prices.get(0).getQuantity() : FixedPointNumber.ZERO;
     }
 
-    public boolean isZero() {
-        return(this.bidVolume.longValue() != 0 && this.askVolume.longValue() == 0);
+    public boolean isValid() {
+        return(isMarketHour() || getBidVolume() != 0 || getAskVolume() != 0);
     }
 
     public long getTimestamp() {
@@ -76,8 +80,13 @@ public class Tick {
         return askVolume.longValue();
     }
 
+    public boolean isMarketHour() {
+        return isMarketHour;
+    }
+
     @Override
     public String toString() {
-        return(timestamp + "," + instrumentId + "," + bidPrice + "/" + askPrice + "," + bidVolume + "/" + askVolume);
+        return(getTimestamp() + "," + getInstrumentId() + "," + getBidPrice() + "/" + getAskPrice() +
+                "," + getBidVolume() + "/" + getAskVolume());
     }
 }

@@ -91,7 +91,7 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
     public void notify(OrderBookEvent orderBookEvent) {
         Tick tick = new Tick(orderBookEvent);
         System.out.println(tick);
-        if(!tick.isZero()) {
+        if(tick.isValid()) {
             DBCollection coll = db.getCollection("lmax");
             BasicDBObject item = new BasicDBObject("Date", tick.getDate()).
                     append("instrument", tick.getInstrumentId()).
