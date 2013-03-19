@@ -19,7 +19,13 @@
     </appender>
 
     <root level="DEBUG">
-        <appender-ref ref="STDOUT" />
-        <appender-ref ref="FILE" />
+        <if condition='property("quantisan.logging.production").equalsIgnoreCase("true")'>
+            <then>
+                <appender-ref ref="FILE" />
+            </then>
+            <else>
+                <appender-ref ref="STDOUT" />
+            </else>
+        </if>
     </root>
 </configuration>
