@@ -9,10 +9,13 @@ import com.lmax.api.heartbeat.HeartbeatRequest;
 import com.lmax.api.heartbeat.HeartbeatSubscriptionRequest;
 import com.lmax.api.orderbook.*;
 import com.mongodb.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.UnknownHostException;
 
 public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBookEventListener, StreamFailureListener, Runnable {
+    final static Logger logger = LoggerFactory.getLogger(ThinBot.class);
     private final static int HEARTBEAT_PERIOD = 2 * 60 * 1000;
 
     private Session session;
@@ -29,7 +32,7 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
 
     @Override
     public void onLoginSuccess(Session session) {
-        System.out.printf("Logged in, account details: %s%n", session.getAccountDetails());
+        logger.info("Logged in, account details: {}.", session.getAccountDetails());
 
         this.session = session;
         session.registerHeartbeatListener(this);
@@ -58,6 +61,7 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
             mongoClient = new MongoClient( "localhost" , 27017 );
         } catch (UnknownHostException e) {
             session.stop();
+            logger.error("Unable to connect to MongoDB: {}.", e);
             throw new RuntimeException("Unable to connect to MongoDB");
         }
 
@@ -80,8 +84,7 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
     @Override
     public void notifyStreamFailure(Exception e)
     {
-        System.err.printf("Stream failure: %s", e.getMessage());
-        e.printStackTrace(System.err);
+        logger.error("Stream failure. {}.", e);
     }
 
     //******************************************************************************//
@@ -90,7 +93,7 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
     @Override
     public void notify(OrderBookEvent orderBookEvent) {
         Tick tick = new Tick(orderBookEvent);
-        System.out.println(tick);
+        logger.debug(tick.toString());
         if(tick.isValid()) {
             DBCollection coll = db.getCollection("lmax");
             BasicDBObject item = new BasicDBObject("Date", tick.getDate()).
@@ -109,12 +112,13 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
         {
             public void onSuccess()
             {
-                System.out.printf("Subscribed to instrument %d.%n", instrumentId);
+                logger.debug("Subscribed to instrument {}.", instrumentId);
             }
 
             public void onFailure(final FailureResponse failureResponse)
             {
-                System.err.printf("Failed to subscribe to instrument %d: %s%n", instrumentId, failureResponse);
+                logger.warn("Failed to subscribe to instrument: {}.", instrumentId);
+                logger.warn("{}. : {}.", failureResponse.getMessage(), failureResponse.getDescription());
             }
         });
     }
@@ -137,7 +141,8 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
             @Override
             public void onFailure(FailureResponse failureResponse)
             {
-                throw new RuntimeException("Heartbeat failed");
+                logger.warn(failureResponse.getMessage(), failureResponse.getDescription());
+                throw new RuntimeException("Heartbeat receive failed");
             }
         });
     }
@@ -154,7 +159,7 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
         }
         catch (InterruptedException e)
         {
-            e.printStackTrace();
+            logger.warn("Fail to request heartbeat: {}.", e);
         }
     }
     //******************************************************************************//
