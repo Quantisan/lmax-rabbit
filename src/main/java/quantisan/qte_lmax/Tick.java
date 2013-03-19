@@ -5,6 +5,7 @@ import com.lmax.api.orderbook.Instrument;
 import com.lmax.api.orderbook.OrderBookEvent;
 import com.lmax.api.orderbook.PricePoint;
 
+import java.util.Date;
 import java.util.List;
 
 public class Tick {
@@ -44,7 +45,35 @@ public class Tick {
     }
 
     public boolean isZero() {
-        return(this.bidVolume.longValue() == 0 && this.askVolume.longValue() == 0);
+        return(this.bidVolume.longValue() != 0 && this.askVolume.longValue() == 0);
+    }
+
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    public Date getDate() {
+        return new Date(timestamp);
+    }
+
+    public long getInstrumentId() {
+        return instrumentId;
+    }
+
+    public long getBidPrice() {
+        return bidPrice.longValue();
+    }
+
+    public long getBidVolume() {
+        return bidVolume.longValue();
+    }
+
+    public long getAskPrice() {
+        return askPrice.longValue();
+    }
+
+    public long getAskVolume() {
+        return askVolume.longValue();
     }
 
     @Override

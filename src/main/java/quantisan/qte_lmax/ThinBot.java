@@ -16,7 +16,7 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
     private final static int HEARTBEAT_PERIOD = 2 * 60 * 1000;
 
     private Session session;
-    private DBCollection coll;
+    private DB db;
 
 
     public static void main(String[] args) {
@@ -57,13 +57,16 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
         try {
             mongoClient = new MongoClient( "localhost" , 27017 );
         } catch (UnknownHostException e) {
+            session.stop();
             throw new RuntimeException("Unable to connect to MongoDB");
         }
 
         mongoClient.setWriteConcern(WriteConcern.UNACKNOWLEDGED);
-        DB db = mongoClient.getDB("ticks buffer");
-        coll = db.getCollection("lmax");
-        coll.ensureIndex(new BasicDBObject("Date", 1), new BasicDBObject("expireAfterSeconds", 3600));
+        this.db = mongoClient.getDB("ticks_buffer");
+        DBCollection coll = db.getCollection("lmax");
+        coll.ensureIndex(BasicDBObjectBuilder.start().add("Date", 1).get(),
+                BasicDBObjectBuilder.start().add("expireAfterSeconds", 3600).get());
+        coll.ensureIndex(BasicDBObjectBuilder.start().add("instrument", 1).add("Date", 1).get());
 
         new Thread(this).start();  // heartbeat request
         session.start();
@@ -87,8 +90,16 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
     @Override
     public void notify(OrderBookEvent orderBookEvent) {
         Tick tick = new Tick(orderBookEvent);
+        System.out.println(tick);
         if(!tick.isZero()) {
-            System.out.println(tick);     // TODO push to mq
+            DBCollection coll = db.getCollection("lmax");
+            BasicDBObject item = new BasicDBObject("Date", tick.getDate()).
+                    append("instrument", tick.getInstrumentId()).
+                    append("bidPrice", tick.getBidPrice()).
+                    append("bidVolume", tick.getBidVolume()).
+                    append("askPrice", tick.getAskPrice()).
+                    append("askVolume", tick.getAskVolume());
+            coll.insert(item);
         }
     }
 
