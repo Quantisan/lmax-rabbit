@@ -86,8 +86,8 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
         if(tick.isValid()) {
             Jedis jedis = pool.getResource();
             try {
-                jedis.lpush(Instrument.toName(tick.getInstrumentId()), tick.toString());
-                jedis.expire(Instrument.toName(tick.getInstrumentId()), 3600);
+                jedis.lpush(tick.getInstrumentName(), tick.toString());
+                jedis.expire(tick.getInstrumentName(), 3600);
             } finally {
                 pool.returnResource(jedis);
             }
