@@ -8,18 +8,18 @@ import com.lmax.api.heartbeat.HeartbeatEventListener;
 import com.lmax.api.heartbeat.HeartbeatRequest;
 import com.lmax.api.heartbeat.HeartbeatSubscriptionRequest;
 import com.lmax.api.orderbook.*;
-import com.mongodb.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.net.UnknownHostException;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisPoolConfig;
 
 public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBookEventListener, StreamFailureListener, Runnable {
     final static Logger logger = LoggerFactory.getLogger(ThinBot.class);
     private final static int HEARTBEAT_PERIOD = 2 * 60 * 1000;
 
     private Session session;
-    private DB db;
+    private JedisPool pool;
 
     public static void main(String[] args) {
         String demoUrl = "https://testapi.lmaxtrader.com";
@@ -57,24 +57,11 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
         subscribeToInstrument(session, 100637);  // Gold
         subscribeToInstrument(session, 100639);  // Silver
 
-        MongoClient mongoClient;
-        try {
-            mongoClient = new MongoClient( "localhost" , 27017 );
-        } catch (UnknownHostException e) {
-            session.stop();
-            logger.error("Unable to connect to MongoDB: {}.", e);
-            throw new RuntimeException("Unable to connect to MongoDB");
-        }
-
-        mongoClient.setWriteConcern(WriteConcern.UNACKNOWLEDGED);
-        db = mongoClient.getDB("ticks_buffer");
-        DBCollection coll = db.getCollection("lmax");
-        coll.ensureIndex(BasicDBObjectBuilder.start().add("Date", 1).get(),
-                BasicDBObjectBuilder.start().add("expireAfterSeconds", 3600).get());
-        coll.ensureIndex(BasicDBObjectBuilder.start().add("instrument", 1).add("Date", 1).get());
+        pool = new JedisPool(new JedisPoolConfig(), "localhost");
 
         new Thread(this).start();  // heartbeat request
         session.start();
+        pool.destroy();
     }
 
     @Override
@@ -95,19 +82,14 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
     public void notify(OrderBookEvent orderBookEvent) {
         Tick tick = new Tick(orderBookEvent);
         logger.debug(tick.toString());
+
         if(tick.isValid()) {
-            DBCollection coll = db.getCollection("lmax");
-            BasicDBObject item = new BasicDBObject("Date", tick.getDate()).
-                    append("instrument", tick.getInstrumentId()).
-                    append("bidPrice", tick.getBidPrice()).
-                    append("bidVolume", tick.getBidVolume()).
-                    append("askPrice", tick.getAskPrice()).
-                    append("askVolume", tick.getAskVolume());
+            Jedis jedis = pool.getResource();
             try {
-                coll.insert(item);
-            } catch (com.mongodb.MongoException e) {
-                logger.error("Cannot write data to MongoDB.", e);
-                session.stop();     // TODO request heartbeat to reconnect to mongo
+                jedis.lpush(Long.toString(tick.getInstrumentId()), tick.toString());
+                jedis.expire(Long.toString(tick.getInstrumentId()), 3600);
+            } finally {
+                pool.returnResource(jedis);
             }
         }
     }

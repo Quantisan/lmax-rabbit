@@ -85,7 +85,7 @@ public class Tick {
 
     @Override
     public String toString() {
-        return(getTimestamp() + "," + getInstrumentId() + "," + getBidPrice() + "/" + getAskPrice() +
-                "," + getBidVolume() + "/" + getAskVolume());
+        return(getTimestamp() + "," + getInstrumentId() + "," + getBidPrice() + "," + getAskPrice() +
+                "," + getBidVolume() + "," + getAskVolume());
     }
 }
