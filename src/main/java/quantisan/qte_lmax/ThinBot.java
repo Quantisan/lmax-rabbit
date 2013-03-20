@@ -17,6 +17,7 @@ import redis.clients.jedis.JedisPoolConfig;
 public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBookEventListener, StreamFailureListener, Runnable {
     final static Logger logger = LoggerFactory.getLogger(ThinBot.class);
     private final static int HEARTBEAT_PERIOD = 2 * 60 * 1000;
+    private final static int MESSAGE_TTL = 10 * 60;
 
     private Session session;
     private JedisPool pool;
@@ -87,7 +88,7 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
             Jedis jedis = pool.getResource();
             try {
                 jedis.lpush(tick.getInstrumentName(), tick.toString());
-                jedis.expire(tick.getInstrumentName(), 3600);
+                jedis.expire(tick.getInstrumentName(), MESSAGE_TTL);
             } finally {
                 pool.returnResource(jedis);
             }
