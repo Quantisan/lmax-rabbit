@@ -8,19 +8,22 @@ import com.lmax.api.heartbeat.HeartbeatEventListener;
 import com.lmax.api.heartbeat.HeartbeatRequest;
 import com.lmax.api.heartbeat.HeartbeatSubscriptionRequest;
 import com.lmax.api.orderbook.*;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPoolConfig;
+
+import java.io.IOException;
 
 public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBookEventListener, StreamFailureListener, Runnable {
     final static Logger logger = LoggerFactory.getLogger(ThinBot.class);
+    private final static String QUEUE_NAME = "lmax_ticks";
     private final static int HEARTBEAT_PERIOD = 2 * 60 * 1000;
     private final static int MESSAGE_TTL = 10 * 60;
 
     private Session session;
-    private JedisPool pool;
+    private ConnectionFactory factory;
 
     public static void main(String[] args) {
         String demoUrl = "https://testapi.lmaxtrader.com";
@@ -58,11 +61,13 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
         subscribeToInstrument(session, 100637);  // Gold
         subscribeToInstrument(session, 100639);  // Silver
 
-        pool = new JedisPool(new JedisPoolConfig(), "localhost");
+        factory = new ConnectionFactory();
+        factory.setHost("localhost");
 
         new Thread(this).start();  // heartbeat request
         session.start();
-        pool.destroy();
+
+
     }
 
     @Override
@@ -82,15 +87,21 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
     @Override
     public void notify(OrderBookEvent orderBookEvent) {
         Tick tick = new Tick(orderBookEvent);
-        logger.debug(tick.toString());
 
         if(tick.isValid()) {
-            Jedis jedis = pool.getResource();
+            Connection connection;
+            Channel channel;
             try {
-                jedis.lpush(tick.getInstrumentName(), tick.toString());
-                jedis.expire(tick.getInstrumentName(), MESSAGE_TTL);
-            } finally {
-                pool.returnResource(jedis);
+                connection = factory.newConnection();
+                channel = connection.createChannel();
+                channel.queueDeclare(QUEUE_NAME, false, false, false, null);
+                String message = tick.toString();
+                channel.basicPublish("", QUEUE_NAME, null, message.getBytes());
+                logger.debug("Sent {}.", tick.toString());
+                channel.close();
+                connection.close();
+            } catch (IOException e) {
+                logger.error("Error publishing tick.", e);
             }
         }
     }
