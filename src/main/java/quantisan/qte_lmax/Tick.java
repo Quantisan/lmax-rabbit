@@ -15,19 +15,9 @@ public class Tick {
     private final FixedPointNumber askVolume;
     private final boolean isMarketHour;
 
-    public Tick(long timestamp, long instrumentId, FixedPointNumber bidPrice, FixedPointNumber bidVolume, FixedPointNumber askPrice, FixedPointNumber askVolume, boolean isMarketHour) {
-        this.timestamp = timestamp;
-        this.instrumentId = instrumentId;
-        this.bidPrice = bidPrice;
-        this.bidVolume = bidVolume;
-        this.askPrice = askPrice;
-        this.askVolume = askVolume;
-        this.isMarketHour = isMarketHour;
-    }
-
     public Tick(OrderBookEvent o) {
         this.timestamp = o.getTimeStamp();
-        this.isMarketHour = this.timestamp <= o.getMarketClosePriceTimeStamp();
+        this.isMarketHour = this.timestamp < o.getMarketClosePriceTimeStamp();
         this.instrumentId = o.getInstrumentId();
         this.bidPrice = getBestPrice(o.getBidPrices());
         this.bidVolume = getBestVolume(o.getBidPrices());
