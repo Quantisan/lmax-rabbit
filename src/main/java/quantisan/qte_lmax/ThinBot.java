@@ -18,7 +18,7 @@ import java.io.IOException;
 
 public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBookEventListener, StreamFailureListener, Runnable {
     final static Logger logger = LoggerFactory.getLogger(ThinBot.class);
-    private final static String QUEUE_NAME = "lmax_ticks";
+    private final static String EXCHANGE_NAME = "ticks";
     private final static int HEARTBEAT_PERIOD = 2 * 60 * 1000;
     private final static int MESSAGE_TTL = 10 * 60;
 
@@ -94,9 +94,10 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
             try {
                 connection = factory.newConnection();
                 channel = connection.createChannel();
-                channel.queueDeclare(QUEUE_NAME, false, false, false, null);
+                channel.exchangeDeclare(EXCHANGE_NAME, "topic");
+                String routingKey = getRouting(tick.getInstrumentName());
                 String message = tick.toString();
-                channel.basicPublish("", QUEUE_NAME, null, message.getBytes());
+                channel.basicPublish(EXCHANGE_NAME, routingKey, null, message.getBytes());
                 logger.debug("Sent {}.", tick.toString());
                 channel.close();
                 connection.close();
@@ -104,6 +105,10 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
                 logger.error("Error publishing tick.", e);
             }
         }
+    }
+
+    private String getRouting(String inst) {
+        return "lmax." + inst.toLowerCase();
     }
 
     private void subscribeToInstrument(final Session session, final long instrumentId)
