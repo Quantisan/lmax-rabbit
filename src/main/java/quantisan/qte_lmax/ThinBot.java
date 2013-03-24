@@ -108,7 +108,7 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
     }
 
     private String getRouting(String inst) {
-        return inst.toLowerCase() + ".lmax";
+        return "lmax." + inst.toLowerCase();
     }
 
     private void subscribeToInstrument(final Session session, final long instrumentId)
