@@ -16,21 +16,27 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
-public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBookEventListener, StreamFailureListener, Runnable {
+public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBookEventListener, StreamFailureListener, SessionDisconnectedListener, Runnable {
     final static Logger logger = LoggerFactory.getLogger(ThinBot.class);
     private final static String EXCHANGE_NAME = "ticks";
-    private final static int HEARTBEAT_PERIOD = 2 * 60 * 1000;
-    private final static int MESSAGE_TTL = 10 * 60;
+    private final static int HEARTBEAT_PERIOD = 4 * 60 * 1000;
+    private final static int reconnectTries = 5;
+    private final static String brokerUrl = "https://testapi.lmaxtrader.com";
 
     private Session session;
+    private int reconnectCount;
     private ConnectionFactory factory;
+    private Connection connection;
+    private Channel channel;
 
-    public static void main(String[] args) {
-        String demoUrl = "https://testapi.lmaxtrader.com";
-        LmaxApi lmaxApi = new LmaxApi(demoUrl);
-
+    public static void loginLmax(String url) {
+        LmaxApi lmaxApi = new LmaxApi(url);
         ThinBot thinBot = new ThinBot();
         lmaxApi.login(new LoginRequest("quantisan2", "J63VFqmXBaQStdAxKnD7", LoginRequest.ProductType.CFD_DEMO), thinBot);
+    }
+
+    public static void main(String[] args) {
+        loginLmax(brokerUrl);
     }
 
     @Override
@@ -38,9 +44,11 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
         logger.info("Logged in, account details: {}.", session.getAccountDetails());
 
         this.session = session;
+        this.reconnectCount = 0;
         session.registerHeartbeatListener(this);
         session.registerOrderBookEventListener(this);
         session.registerStreamFailureListener(this);
+        session.registerSessionDisconnectedListener(this);
 
         // subscribe to heatbeat //
         session.subscribe(new HeartbeatSubscriptionRequest(), new Callback()
@@ -61,12 +69,28 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
         subscribeToInstrument(session, 100637);  // Gold
         subscribeToInstrument(session, 100639);  // Silver
 
+        // RabbitMQ
         factory = new ConnectionFactory();
         factory.setHost("localhost");
+        try {
+            connection = factory.newConnection();
+            channel = connection.createChannel();
+            channel.exchangeDeclare(EXCHANGE_NAME, "topic");
+        } catch (IOException e) {
+            logger.error("Can't open a rabbitmq connection.", e);
+            System.exit(1);
+        }
 
         new Thread(this).start();  // heartbeat request
         session.start();
 
+        try {
+            channel.close();
+            connection.close();
+        } catch (IOException e) {
+            logger.error("Can't close rabbitmq connection.", e);
+            System.exit(1);
+        }
 
     }
 
@@ -89,18 +113,13 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
         Tick tick = new Tick(orderBookEvent);
 
         if(tick.isValid()) {
-            Connection connection;
-            Channel channel;
             try {
-                connection = factory.newConnection();
-                channel = connection.createChannel();
-                channel.exchangeDeclare(EXCHANGE_NAME, "topic");
                 String routingKey = getRouting(tick.getInstrumentName());
                 String message = tick.toString();
                 channel.basicPublish(EXCHANGE_NAME, routingKey, null, message.getBytes());
-                logger.debug("Sent {}.", tick.toString());
-                channel.close();
-                connection.close();
+                logger.debug("Sent {}", tick.toString());
+
+
             } catch (IOException e) {
                 logger.error("Error publishing tick.", e);
             }
@@ -168,4 +187,16 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
         }
     }
     //******************************************************************************//
+
+    @Override
+    public void notifySessionDisconnected() {
+        if (++reconnectCount <= reconnectTries)
+        {
+            logger.warn("Session disconnected - attempting to log in again (attempt {})", reconnectCount);
+            loginLmax(brokerUrl);
+        } else {
+            logger.error("Session disconnected - aborting after too many reconnect attempts");
+            System.exit(1);
+        }
+    }
 }
