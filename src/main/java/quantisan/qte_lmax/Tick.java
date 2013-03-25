@@ -80,4 +80,14 @@ public class Tick {
         return(getTimestamp() + "," + getInstrumentName() + "," + getBidPrice() + "," + getAskPrice() +
                 "," + getBidVolume() + "," + getAskVolume());
     }
+
+    public String toEdn() {
+        return("{:timestamp " + getTimestamp()
+                + ", :instrument " + getInstrumentName()
+                + ", :bid-price " + getBidPrice()
+                + ", :ask-price " + getAskPrice()
+                + ", :bid-volume " + getBidVolume()
+                + ", :ask-volume " + getAskVolume()
+                + "}");
+    }
 }

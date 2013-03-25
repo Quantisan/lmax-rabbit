@@ -115,7 +115,7 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
         if(tick.isValid()) {
             try {
                 String routingKey = getRouting(tick.getInstrumentName());
-                String message = tick.toString();
+                String message = tick.toEdn();
                 channel.basicPublish(EXCHANGE_NAME, routingKey, null, message.getBytes());
                 logger.debug("Sent {}", tick.toString());
 
