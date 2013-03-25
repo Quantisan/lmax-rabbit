@@ -83,7 +83,7 @@ public class Tick {
 
     public String toEdn() {
         return("{:timestamp " + getTimestamp()
-                + ", :instrument " + getInstrumentName()
+                + ", :instrument \"" + getInstrumentName() + "\""
                 + ", :bid-price " + getBidPrice()
                 + ", :ask-price " + getAskPrice()
                 + ", :bid-volume " + getBidVolume()
