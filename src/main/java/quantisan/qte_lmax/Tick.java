@@ -9,6 +9,7 @@ import java.util.*;
 public class Tick {
     private final long timestamp;
     private long instrumentId;
+    private final FixedPointNumber lastTradedPrice;
     private final FixedPointNumber bidPrice;
     private final FixedPointNumber bidVolume;
     private final FixedPointNumber askPrice;
@@ -19,6 +20,7 @@ public class Tick {
         this.timestamp = o.getTimeStamp();
         this.isMarketHour = this.timestamp < o.getMarketClosePriceTimeStamp();
         this.instrumentId = o.getInstrumentId();
+        this.lastTradedPrice = o.getLastTradedPrice();
         this.bidPrice = getBestPrice(o.getBidPrices());
         this.bidVolume = getBestVolume(o.getBidPrices());
         this.askPrice = getBestPrice(o.getAskPrices());
@@ -51,6 +53,10 @@ public class Tick {
         return instrumentId;
     }
 
+    public long getLastTradedPrice() {
+        return lastTradedPrice.longValue();
+    }
+
     public String getInstrumentName() {
         return Instrument.toName(instrumentId);
     }
@@ -77,13 +83,14 @@ public class Tick {
 
     @Override
     public String toString() {
-        return(getTimestamp() + "," + getInstrumentName() + "," + getBidPrice() + "," + getAskPrice() +
-                "," + getBidVolume() + "," + getAskVolume());
+        return(getTimestamp() + "," + getInstrumentName() + "," + getLastTradedPrice() + "," +
+                getBidPrice() + "," + getAskPrice() + "," + getBidVolume() + "," + getAskVolume());
     }
 
     public String toEdn() {
         return("{:timestamp " + getTimestamp()
                 + ", :instrument \"" + getInstrumentName() + "\""
+                + ", :last-traded-price " + getLastTradedPrice()
                 + ", :bid-price " + getBidPrice()
                 + ", :ask-price " + getAskPrice()
                 + ", :bid-volume " + getBidVolume()
