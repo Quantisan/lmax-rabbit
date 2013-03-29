@@ -25,7 +25,6 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
 
     private Session session;
     private int reconnectCount;
-    private ConnectionFactory factory;
     private Connection connection;
     private Channel channel;
 
@@ -70,7 +69,7 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
         subscribeToInstrument(session, 100639);  // Silver
 
         // RabbitMQ
-        factory = new ConnectionFactory();
+        ConnectionFactory factory = new ConnectionFactory();
         factory.setHost("localhost");
         try {
             connection = factory.newConnection();
