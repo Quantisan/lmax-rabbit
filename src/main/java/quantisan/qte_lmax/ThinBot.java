@@ -74,7 +74,7 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
         try {
             connection = factory.newConnection();
             channel = connection.createChannel();
-            channel.exchangeDeclare(EXCHANGE_NAME, "topic");
+            channel.exchangeDeclare(EXCHANGE_NAME, "topic", true);
         } catch (IOException e) {
             logger.error("Can't open a rabbitmq connection.", e);
             System.exit(1);
