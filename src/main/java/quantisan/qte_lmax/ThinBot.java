@@ -18,15 +18,16 @@ import java.io.IOException;
 
 public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBookEventListener, StreamFailureListener, SessionDisconnectedListener, Runnable {
     final static Logger logger = LoggerFactory.getLogger(ThinBot.class);
-    private final static String EXCHANGE_NAME = "ticks";
+    private final static String TICKS_EXCHANGE_NAME = "ticks";
+    private final static String ORDER_QUEUE_NAME = "lmax_order";
     private final static int HEARTBEAT_PERIOD = 4 * 60 * 1000;
     private final static int reconnectTries = 5;
     private final static String brokerUrl = "https://testapi.lmaxtrader.com";
 
     private Session session;
     private int reconnectCount;
-    private Connection connection;
-    private Channel channel;
+    private Channel channelTickProducer;
+    private Channel channelOrderReceiver;
 
     public static void loginLmax(String url) {
         LmaxApi lmaxApi = new LmaxApi(url);
@@ -71,10 +72,14 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
         // RabbitMQ
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost("localhost");
+        Connection connection = null;
+
         try {
             connection = factory.newConnection();
-            channel = connection.createChannel();
-            channel.exchangeDeclare(EXCHANGE_NAME, "topic", true);
+            channelTickProducer = connection.createChannel();
+            channelTickProducer.exchangeDeclare(TICKS_EXCHANGE_NAME, "topic", true);  // durable
+            channelOrderReceiver = connection.createChannel();
+            channelOrderReceiver.queueDeclare(ORDER_QUEUE_NAME, false, true, false, null);  // exclusive
         } catch (IOException e) {
             logger.error("Can't open a rabbitmq connection.", e);
             System.exit(1);
@@ -84,7 +89,7 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
         session.start();
 
         try {
-            channel.close();
+            channelTickProducer.close();
             connection.close();
         } catch (IOException e) {
             logger.error("Can't close rabbitmq connection.", e);
@@ -115,7 +120,7 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
             try {
                 String routingKey = getRouting(tick.getInstrumentName());
                 String message = tick.toEdn();
-                channel.basicPublish(EXCHANGE_NAME, routingKey, null, message.getBytes());
+                channelTickProducer.basicPublish(TICKS_EXCHANGE_NAME, routingKey, null, message.getBytes());
                 logger.debug("Sent {}", tick.toString());
 
 
