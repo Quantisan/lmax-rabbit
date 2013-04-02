@@ -78,10 +78,10 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
         try {
             connection = factory.newConnection();
             channelTickProducer = connection.createChannel();
-            logger.info("Declaring exchange.");
+            logger.debug("Declaring tick exchange.");
             channelTickProducer.exchangeDeclare(TICKS_EXCHANGE_NAME, "topic", true);  // durable
             channelOrderReceiver = connection.createChannel();
-            logger.info("Declaring queue.");
+            logger.debug("Declaring order queue.");
             channelOrderReceiver.queueDeclare(ORDER_QUEUE_NAME, false, true, false, null);  // exclusive
         } catch (IOException e) {
             logger.error("Can't open a rabbitmq connection.", e);
@@ -89,6 +89,7 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
         }
 
         // heartbeat request
+        logger.debug("Starting heartbeat.");
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -108,6 +109,7 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
         }).start();
 
         // consumer for order queue
+
         final QueueingConsumer consumer = new QueueingConsumer(channelOrderReceiver);
         try {
             channelOrderReceiver.basicConsume(ORDER_QUEUE_NAME, consumer);
@@ -115,30 +117,17 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
             logger.error("Can't start consumer.", e);
         }
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while (true) {
-                    QueueingConsumer.Delivery delivery = null;
-                    try {
-                        delivery = consumer.nextDelivery();
-                    } catch (InterruptedException e) {
-                        logger.error("Interrupted before order delivery.", e);
-                    }
-                    String message = new String(delivery.getBody());
-                    logger.info("Received '{}'", message);
-                    try {
-                        channelOrderReceiver.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
-                    } catch (IOException e) {
-                        logger.error("Fail to acknowledge order message.", e);
-                    }
-                }
-            }
-        }).start();
+        logger.debug("Listening queueing consumer.");
+        new Thread(new Order(channelOrderReceiver, consumer)).start();
+
+        logger.debug("Session starting");
         session.start();
 
         try {
+            logger.debug("Closing rabbitmq channels.");
             channelTickProducer.close();
+            channelOrderReceiver.close();
+            logger.debug("Closing rabbitmq connection.");
             connection.close();
         } catch (IOException e) {
             logger.error("Can't close rabbitmq connection.", e);
