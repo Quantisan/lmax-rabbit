@@ -109,7 +109,6 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
         }).start();
 
         // consumer for order queue
-
         final QueueingConsumer consumer = new QueueingConsumer(channelOrderReceiver);
         try {
             channelOrderReceiver.basicConsume(ORDER_QUEUE_NAME, consumer);
@@ -133,7 +132,6 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
             logger.error("Can't close rabbitmq connection.", e);
             System.exit(1);
         }
-
     }
 
     @Override
