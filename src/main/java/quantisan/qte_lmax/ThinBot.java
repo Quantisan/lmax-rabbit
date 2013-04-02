@@ -11,12 +11,13 @@ import com.lmax.api.orderbook.*;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.QueueingConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
-public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBookEventListener, StreamFailureListener, SessionDisconnectedListener, Runnable {
+public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBookEventListener, StreamFailureListener, SessionDisconnectedListener {
     final static Logger logger = LoggerFactory.getLogger(ThinBot.class);
     private final static String TICKS_EXCHANGE_NAME = "ticks";
     private final static String ORDER_QUEUE_NAME = "lmax_order";
@@ -63,9 +64,9 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
         });
 
         // subscribe to instrument data //
-        for (long instrumentId = 4001; instrumentId < 4018; instrumentId++)
+        for (long instrumentId = 4001; instrumentId < 4018; instrumentId++) {
             subscribeToInstrument(session, instrumentId);
-
+        }
         subscribeToInstrument(session, 100637);  // Gold
         subscribeToInstrument(session, 100639);  // Silver
 
@@ -77,15 +78,63 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
         try {
             connection = factory.newConnection();
             channelTickProducer = connection.createChannel();
+            logger.info("Declaring exchange.");
             channelTickProducer.exchangeDeclare(TICKS_EXCHANGE_NAME, "topic", true);  // durable
             channelOrderReceiver = connection.createChannel();
+            logger.info("Declaring queue.");
             channelOrderReceiver.queueDeclare(ORDER_QUEUE_NAME, false, true, false, null);  // exclusive
         } catch (IOException e) {
             logger.error("Can't open a rabbitmq connection.", e);
             System.exit(1);
         }
 
-        new Thread(this).start();  // heartbeat request
+        // heartbeat request
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try
+                {
+                    while (!Thread.currentThread().isInterrupted())
+                    {
+                        Thread.sleep(HEARTBEAT_PERIOD);
+                        requestHeartbeat();
+                    }
+                }
+                catch (InterruptedException e)
+                {
+                    logger.warn("Fail to request heartbeat: {}.", e);
+                }
+            }
+        }).start();
+
+        // consumer for order queue
+        final QueueingConsumer consumer = new QueueingConsumer(channelOrderReceiver);
+        try {
+            channelOrderReceiver.basicConsume(ORDER_QUEUE_NAME, consumer);
+        } catch (IOException e) {
+            logger.error("Can't start consumer.", e);
+        }
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true) {
+                    QueueingConsumer.Delivery delivery = null;
+                    try {
+                        delivery = consumer.nextDelivery();
+                    } catch (InterruptedException e) {
+                        logger.error("Interrupted before order delivery.", e);
+                    }
+                    String message = new String(delivery.getBody());
+                    logger.info("Received '{}'", message);
+                    try {
+                        channelOrderReceiver.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
+                    } catch (IOException e) {
+                        logger.error("Fail to acknowledge order message.", e);
+                    }
+                }
+            }
+        }).start();
         session.start();
 
         try {
@@ -175,21 +224,6 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
         });
     }
 
-    @Override
-    public void run() {
-        try
-        {
-            while (!Thread.currentThread().isInterrupted())
-            {
-                Thread.sleep(HEARTBEAT_PERIOD);
-                requestHeartbeat();
-            }
-        }
-        catch (InterruptedException e)
-        {
-            logger.warn("Fail to request heartbeat: {}.", e);
-        }
-    }
     //******************************************************************************//
 
     @Override
