@@ -26,8 +26,9 @@ public class OrderObserver implements Runnable {
             } catch (InterruptedException e) {
                 logger.error("Interrupted before order delivery.", e);
             }
-            String message = new String(delivery.getBody());
-            logger.info("Received '{}'", message);  // TODO process order
+            Order order = new Order(new String(delivery.getBody()));
+            order.execute();
+            logger.info("Received order '{}'", order);
             try {
                 channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
             } catch (IOException e) {
