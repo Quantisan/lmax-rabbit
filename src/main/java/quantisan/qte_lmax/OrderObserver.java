@@ -7,12 +7,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
-public class Order implements Runnable {
-    final static Logger logger = LoggerFactory.getLogger(Order.class);
+public class OrderObserver implements Runnable {
+    final static Logger logger = LoggerFactory.getLogger(OrderObserver.class);
     private final Channel channel;
     private final QueueingConsumer consumer;
 
-    public Order (Channel channel, QueueingConsumer consumer) {
+    public OrderObserver(Channel channel, QueueingConsumer consumer) {
         this.channel = channel;
         this.consumer = consumer;
     }

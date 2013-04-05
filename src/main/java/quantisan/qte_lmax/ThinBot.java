@@ -117,7 +117,7 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
         }
 
         logger.debug("Listening queueing consumer.");
-        new Thread(new Order(channelOrderReceiver, consumer)).start();
+        new Thread(new OrderObserver(channelOrderReceiver, consumer)).start();
 
         logger.debug("Session starting");
         session.start();
