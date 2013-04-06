@@ -6,11 +6,11 @@ import static org.junit.Assert.*;
 public class InstrumentTest {
     @Test
     public void testToName() throws Exception {
-        assertEquals(Instrument.toName(4001L), "EURUSD");
+        assertEquals("EURUSD", Instrument.toName(4001L));
     }
 
     @Test
     public void testToId() throws Exception {
-        assertEquals(Instrument.toId("EURUSD"), 4001L);
+        assertEquals(4001L, Instrument.toId("EURUSD"));
     }
 }
