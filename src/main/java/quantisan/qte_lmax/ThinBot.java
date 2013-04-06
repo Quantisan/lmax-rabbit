@@ -20,7 +20,7 @@ import java.io.IOException;
 public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBookEventListener, StreamFailureListener, SessionDisconnectedListener {
     final static Logger logger = LoggerFactory.getLogger(ThinBot.class);
     private final static String TICKS_EXCHANGE_NAME = "ticks";
-    private final static String ORDER_QUEUE_NAME = "lmax_order";
+    private final static String ORDER_QUEUE_NAME = "lmax_order";  // TODO take username param and use individual order channel
     private final static int HEARTBEAT_PERIOD = 4 * 60 * 1000;
     private final static int reconnectTries = 5;
     private final static String brokerUrl = "https://testapi.lmaxtrader.com";
@@ -117,7 +117,7 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
         }
 
         logger.debug("Listening queueing consumer.");
-        new Thread(new OrderObserver(channelOrderReceiver, consumer)).start();
+        new Thread(new OrderObserver(session, channelOrderReceiver, consumer)).start();
 
         logger.debug("Session starting");
         session.start();
