@@ -67,8 +67,29 @@ public class Order {
                 public void onFailure(FailureResponse failureResponse)
                 {
                     setOrderState(OrderState.FAIL);
-                    logger.error("Failed to place order: {}", failureResponse);
+
+                    if (!failureResponse.isSystemFailure())
+                    {
+                        logger.error("Order data error - Message: {}, Description: {}",
+                                failureResponse.getMessage(),
+                                failureResponse.getDescription());
+                    }
+                    else
+                    {
+                        Exception e = failureResponse.getException();
+                        if (e != null)
+                        {
+                            logger.error("Order exception raised - ", e);
+                        }
+                        else
+                        {
+                            logger.error("Order system error - Message: {}, Description: {}",
+                                    failureResponse.getMessage(),
+                                    failureResponse.getDescription());
+                        }
+                    }
                 }
+
             });
         }
     }
