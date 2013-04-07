@@ -1,31 +1,21 @@
 <configuration>
-    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <!-- encoders are assigned the type
-             ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
-        <encoder>
-            <pattern>%date [%thread] %-5level %logger{36} - %msg%n</pattern>
-        </encoder>
-    </appender>
-
-    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+    <appender name="ROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>log/qte-lmax.log</file>
-        <append>true</append>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+          <!-- rollover monthly -->
+          <fileNamePattern>mylog-%d{yyyy-MM}.%i.txt</fileNamePattern>
+          <timeBasedFileNamingAndTriggeringPolicy
+                class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+            <!-- or whenever the file size reaches 100MB -->
+            <maxFileSize>100MB</maxFileSize>
+          </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
         <encoder>
-            <pattern>%date %-5level [%thread] %logger{10} - %msg%n</pattern>
+          <pattern>%-4relative [%thread] %-5level %logger{35} - %msg%n</pattern>
         </encoder>
-        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>INFO</level>
-        </filter>
     </appender>
 
-    <root level="DEBUG">
-        <if condition='property("quantisan.logging.production").equalsIgnoreCase("true")'>
-            <then>
-                <appender-ref ref="FILE" />
-            </then>
-            <else>
-                <appender-ref ref="STDOUT" />
-            </else>
-        </if>
+    <root level="INFO">
+    <appender-ref ref="ROLLING" />
     </root>
 </configuration>
