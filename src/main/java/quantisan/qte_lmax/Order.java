@@ -132,12 +132,33 @@ public class Order {
             {
                 public void onSuccess(String amendRequestInstructionId)
                 {
-                    logger.info("Order amended: {}", amendRequestInstructionId);
+                    logger.info("Order amended stop: {}", amendRequestInstructionId);
                 }
 
                 public void onFailure(FailureResponse failureResponse)
                 {
-                    logger.error("Failed to amend stop: {}.", failureResponse);
+                    setOrderState(OrderState.FAIL);
+
+                    if (!failureResponse.isSystemFailure())
+                    {
+                        logger.error("Order stop amend data error - Message: {}, Description: {}",
+                                failureResponse.getMessage(),
+                                failureResponse.getDescription());
+                    }
+                    else
+                    {
+                        Exception e = failureResponse.getException();
+                        if (e != null)
+                        {
+                            logger.error("Order stop amend exception raised - ", e);
+                        }
+                        else
+                        {
+                            logger.error("Order stop amend system error - Message: {}, Description: {}",
+                                    failureResponse.getMessage(),
+                                    failureResponse.getDescription());
+                        }
+                    }
                 }
             });
         }
