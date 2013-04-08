@@ -31,7 +31,6 @@ public class OrderObserver implements Runnable {
             }
             Order order = new Order(session, new String(delivery.getBody()));
             order.execute();
-            logger.info("Received order '{}'", order);
             try {
                 channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
             } catch (IOException e) {
