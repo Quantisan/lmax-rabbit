@@ -1,9 +1,6 @@
 package quantisan.qte_lmax;
 
-import com.lmax.api.FailureResponse;
-import com.lmax.api.FixedPointNumber;
-import com.lmax.api.Session;
-import com.lmax.api.TimeInForce;
+import com.lmax.api.*;
 import com.lmax.api.order.AmendStopsRequest;
 import com.lmax.api.order.MarketOrderSpecification;
 import com.lmax.api.order.OrderCallback;
@@ -44,8 +41,8 @@ public class Order {
         Map<?, ?> m = (Map<?, ?>) p.nextValue(pbr);
         String orderId = m.get(newKeyword("order-id")).toString();
         Long instrument = Instrument.toId(m.get(newKeyword("instrument")).toString());
-        FixedPointNumber quantity = FixedPointNumber.valueOf((Long)m.get(newKeyword("quantity")));
-        FixedPointNumber stopLossOffset = FixedPointNumber.valueOf((Long)m.get(newKeyword("stop-loss-offset")));
+        FixedPointNumber quantity = FixedPointNumber.valueOf(m.get(newKeyword("quantity")).toString());
+        FixedPointNumber stopLossOffset = FixedPointNumber.valueOf(m.get(newKeyword("stop-loss-offset")).toString());
         return new MarketOrderSpecification(instrument, orderId, quantity, TimeInForce.IMMEDIATE_OR_CANCEL,stopLossOffset, null);
     }
 
