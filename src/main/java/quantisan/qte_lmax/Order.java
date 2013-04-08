@@ -23,10 +23,10 @@ public class Order {
     private MarketOrderSpecification marketOrderSpecification;
     private AmendStopsRequest amendStopsRequest;
 
-    private enum OrderState { NONE, FAIL, PENDING };
+    private enum OrderState { NONE, FAIL, PENDING }
     private OrderState orderState = OrderState.NONE;
 
-    protected enum OrderType { MARKET, AMEND_STOP, CANCEL, UNKNOWN };
+    protected enum OrderType { MARKET, AMEND_STOP, CANCEL, UNKNOWN }
     private final OrderType orderType;
 
     /**
