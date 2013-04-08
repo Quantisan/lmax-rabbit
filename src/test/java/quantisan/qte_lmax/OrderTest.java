@@ -15,10 +15,10 @@ public class OrderTest {
     public void testToMarketOrder() throws Exception {
         long instrument = 4001;
         String orderId = "my order 1";
-        FixedPointNumber quantity = FixedPointNumber.valueOf(1);
-        FixedPointNumber stopLossOffset = FixedPointNumber.valueOf(10);
+        FixedPointNumber quantity = FixedPointNumber.valueOf("1.0");
+        FixedPointNumber stopLossOffset = FixedPointNumber.valueOf("10.0");
         MarketOrderSpecification mos = new MarketOrderSpecification(instrument, orderId, quantity, TimeInForce.IMMEDIATE_OR_CANCEL,stopLossOffset, null);
-
+        // {:instrument "EURUSD", :order-id "my order 1", :quantity "0.1", :stop-loss-offset "10", :order-type :market}
         assertEquals(mos.toString(),
                 Order.toMarketOrder("{:instrument \"EURUSD\", :order-id \"my order 1\", :quantity 1, :stop-loss-offset 10}").toString());
     }
