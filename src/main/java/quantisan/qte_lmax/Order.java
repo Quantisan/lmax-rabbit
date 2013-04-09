@@ -20,50 +20,27 @@ public class Order {
     final static Logger logger = LoggerFactory.getLogger(Order.class);
 
     private final Session session;
-    private MarketOrderSpecification marketOrderSpecification;
-    private AmendStopsRequest amendStopsRequest;
+    private final String orderId;
+    private final long instrument;
+    private final FixedPointNumber quantity;
+    private final FixedPointNumber stopLossOffset;
 
     private enum OrderState { NONE, FAIL, PENDING }
     private OrderState orderState = OrderState.NONE;
-
     protected enum OrderType { MARKET, AMEND_STOP, CANCEL, UNKNOWN }
     private final OrderType orderType;
 
-    /**
-     * Parse a EDN message to a market order.
-     *
-     * @param ednMessage a EDN message
-     * @return a market order
-     */
-    protected static MarketOrderSpecification toMarketOrder(String ednMessage) {
-        Parseable pbr = Parsers.newParseable(ednMessage);
-        Parser p = Parsers.newParser(defaultConfiguration());
-        Map<?, ?> m = (Map<?, ?>) p.nextValue(pbr);
-        String orderId = m.get(newKeyword("order-id")).toString();
-        Long instrument = Instrument.toId(m.get(newKeyword("instrument")).toString());
-        FixedPointNumber quantity = FixedPointNumber.valueOf(m.get(newKeyword("quantity")).toString());
-        FixedPointNumber stopLossOffset = FixedPointNumber.valueOf(m.get(newKeyword("stop-loss-offset")).toString());
-        return new MarketOrderSpecification(instrument, orderId, quantity, TimeInForce.IMMEDIATE_OR_CANCEL,stopLossOffset, null);
-    }
-
-    protected static AmendStopsRequest toAmendStopOrder(String ednMessage) {
-        Parseable pbr = Parsers.newParseable(ednMessage);
-        Parser p = Parsers.newParser(defaultConfiguration());
-        Map<?, ?> m = (Map<?, ?>) p.nextValue(pbr);
-        String orderId = m.get(newKeyword("order-id")).toString();
-        Long instrument = Instrument.toId(m.get(newKeyword("instrument")).toString());
-        FixedPointNumber stopLossOffset = FixedPointNumber.valueOf((Long)m.get(newKeyword("stop-loss-offset")));
-
-        return new AmendStopsRequest(instrument, orderId, orderId, stopLossOffset, null);
-    }
-
     public Order(Session session, String message) {
         this.session = session;
-        this.orderType = parseOrderType(message);
-        if (orderType == OrderType.MARKET)
-            this.marketOrderSpecification = toMarketOrder(message);
-        else if (orderType == OrderType.AMEND_STOP)
-            this.amendStopsRequest = toAmendStopOrder(message);
+        orderType = parseOrderType(message);
+
+        Parseable pbr = Parsers.newParseable(message);
+        Parser p = Parsers.newParser(defaultConfiguration());
+        Map<?, ?> m = (Map<?, ?>) p.nextValue(pbr);
+        orderId = m.get(newKeyword("order-id")).toString(); // TODO log error if order-id contains space
+        instrument = Instrument.toId(m.get(newKeyword("instrument")).toString());
+        quantity = FixedPointNumber.valueOf(m.get(newKeyword("quantity")).toString());
+        stopLossOffset = FixedPointNumber.valueOf(m.get(newKeyword("stop-loss-offset")).toString());
     }
 
     protected static OrderType parseOrderType(String ednMessage) {
@@ -85,7 +62,8 @@ public class Order {
 
     public void execute() {
         if (getOrderState() == OrderState.NONE && getOrderType() == OrderType.MARKET) {
-            session.placeMarketOrder(this.marketOrderSpecification, new OrderCallback()
+            session.placeMarketOrder(new MarketOrderSpecification(instrument, orderId, quantity, TimeInForce.IMMEDIATE_OR_CANCEL, stopLossOffset, null),
+                    new OrderCallback()
             {
                 public void onSuccess(String placeOrderInstructionId)
                 {
@@ -125,7 +103,7 @@ public class Order {
 
             });
         } else if (getOrderType() == OrderType.AMEND_STOP) {
-            session.amendStops(this.amendStopsRequest, new OrderCallback()
+            session.amendStops(new AmendStopsRequest(instrument, orderId, orderId, stopLossOffset, null), new OrderCallback()
             {
                 public void onSuccess(String amendRequestInstructionId)
                 {
@@ -161,10 +139,6 @@ public class Order {
         }
     }
 
-    public MarketOrderSpecification getMarketOrderSpecification() {
-        return marketOrderSpecification;
-    }
-
     public OrderState getOrderState() {
         return orderState;
     }
@@ -172,7 +146,6 @@ public class Order {
     public void setOrderState(OrderState orderState) {
         this.orderState = orderState;
     }
-
 
     public OrderType getOrderType() {
         return orderType;
