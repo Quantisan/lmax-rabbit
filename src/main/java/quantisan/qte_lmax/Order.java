@@ -21,7 +21,7 @@ public class Order {
 
     private final Session session;
     private final String orderId;
-    private final long instrument;
+    private final long instrumentId;
     private final FixedPointNumber quantity;
     private final FixedPointNumber stopLossOffset;
 
@@ -38,9 +38,13 @@ public class Order {
         Parser p = Parsers.newParser(defaultConfiguration());
         Map<?, ?> m = (Map<?, ?>) p.nextValue(pbr);
         orderId = m.get(newKeyword("order-id")).toString(); // TODO log error if order-id contains space
-        instrument = Instrument.toId(m.get(newKeyword("instrument")).toString());
-        quantity = FixedPointNumber.valueOf(m.get(newKeyword("quantity")).toString());
+        instrumentId = Instrument.toId(m.get(newKeyword("instrument")).toString());     // TODO handle possible null val
         stopLossOffset = FixedPointNumber.valueOf(m.get(newKeyword("stop-loss-offset")).toString());
+        Object buffer = m.get(newKeyword("quantity"));      // quantity is null for amend order
+        if (buffer != null)
+            quantity = FixedPointNumber.valueOf(buffer.toString());
+        else
+            quantity = FixedPointNumber.ZERO;
     }
 
     protected static OrderType parseOrderType(String ednMessage) {
@@ -62,7 +66,7 @@ public class Order {
 
     public void execute() {
         if (getOrderState() == OrderState.NONE && getOrderType() == OrderType.MARKET) {
-            session.placeMarketOrder(new MarketOrderSpecification(instrument, orderId, quantity, TimeInForce.IMMEDIATE_OR_CANCEL, stopLossOffset, null),
+            session.placeMarketOrder(new MarketOrderSpecification(instrumentId, orderId, quantity, TimeInForce.IMMEDIATE_OR_CANCEL, stopLossOffset, null),
                     new OrderCallback()
             {
                 public void onSuccess(String placeOrderInstructionId)
@@ -103,7 +107,7 @@ public class Order {
 
             });
         } else if (getOrderType() == OrderType.AMEND_STOP) {
-            session.amendStops(new AmendStopsRequest(instrument, orderId, orderId, stopLossOffset, null), new OrderCallback()
+            session.amendStops(new AmendStopsRequest(instrumentId, orderId, orderId, stopLossOffset, null), new OrderCallback()
             {
                 public void onSuccess(String amendRequestInstructionId)
                 {
@@ -137,6 +141,22 @@ public class Order {
                 }
             });
         }
+    }
+
+    public String getOrderId() {
+        return orderId;
+    }
+
+    public long getInstrumentId() {
+        return instrumentId;
+    }
+
+    public FixedPointNumber getQuantity() {
+        return quantity;
+    }
+
+    public FixedPointNumber getStopLossOffset() {
+        return stopLossOffset;
     }
 
     public OrderState getOrderState() {
