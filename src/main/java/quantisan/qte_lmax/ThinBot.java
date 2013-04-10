@@ -26,7 +26,7 @@ public class ThinBot implements LoginCallback,
     final static Logger logger = LoggerFactory.getLogger(ThinBot.class);
     private final static String RABBITMQ_SERVER = "localhost";
     private final static String TICKS_EXCHANGE_NAME = "ticks";
-    private final static String ACCOUNTING_QUEUE_NAME = "lmax.accounting";
+    public final static String ACCOUNTING_QUEUE_NAME = "lmax.accounting";
     private final static String ORDER_QUEUE_NAME = "lmax.order";  // TODO take username param and use individual order channel
     private final static int HEARTBEAT_PERIOD = 4 * 60 * 1000;
     private final static int reconnectTries = 5;
@@ -130,7 +130,7 @@ public class ThinBot implements LoginCallback,
         }
 
         logger.debug("Listening queueing consumer.");
-        new Thread(new OrderObserver(session, channelOrderReceiver, orderConsumer)).start();
+        new Thread(new OrderObserver(session, channelOrderReceiver, channelAccountProducer, orderConsumer)).start();
 
         logger.debug("Session starting");
         session.start();
@@ -245,10 +245,10 @@ public class ThinBot implements LoginCallback,
     @Override
     public void notify(InstructionRejectedEvent instructionRejected) {
         logger.warn("Rejection received for {}, reason: {}.", instructionRejected.getInstructionId(), instructionRejected.getReason());
-        String message = "{:type :instruction-reject"
+        String message = "{:type :instruction-rejected"
                 + ", :order-id \"" + instructionRejected.getInstructionId() + "\""
                 + ", :account-id " + instructionRejected.getAccountId()
-                + ", :instrument " + instructionRejected.getInstructionId()
+                + ", :instrument " + instructionRejected.getInstrumentId()
                 + ", :reason " + instructionRejected.getReason() + "}";
 
         try {
