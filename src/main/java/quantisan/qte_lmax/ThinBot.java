@@ -24,6 +24,7 @@ public class ThinBot implements LoginCallback,
         InstructionRejectedEventListener
 {
     final static Logger logger = LoggerFactory.getLogger(ThinBot.class);
+    private final static String RABBITMQ_SERVER = "localhost";
     private final static String TICKS_EXCHANGE_NAME = "ticks";
     private final static String ACCOUNTING_QUEUE_NAME = "lmax.accounting";
     private final static String ORDER_QUEUE_NAME = "lmax.order";  // TODO take username param and use individual order channel
@@ -79,7 +80,7 @@ public class ThinBot implements LoginCallback,
 
         // RabbitMQ
         ConnectionFactory factory = new ConnectionFactory();
-        factory.setHost("localhost");
+        factory.setHost(RABBITMQ_SERVER);
         Connection connection = null;
 
         try {
