@@ -91,7 +91,7 @@ public class ThinBot implements LoginCallback,
 
             channelAccountProducer = connection.createChannel();
             logger.debug("Declaring accounting queue.");
-            channelAccountProducer.queueDeclare(ACCOUNTING_QUEUE_NAME, false, true, false, null);
+            channelAccountProducer.queueDeclare(ACCOUNTING_QUEUE_NAME, true, false, false, null);
 
             channelOrderReceiver = connection.createChannel();
             logger.debug("Declaring order queue.");
@@ -122,15 +122,15 @@ public class ThinBot implements LoginCallback,
         }).start();
 
         // consumer for order queue
-        final QueueingConsumer consumer = new QueueingConsumer(channelOrderReceiver);
+        final QueueingConsumer orderConsumer = new QueueingConsumer(channelOrderReceiver);
         try {
-            channelOrderReceiver.basicConsume(ORDER_QUEUE_NAME, consumer);
+            channelOrderReceiver.basicConsume(ORDER_QUEUE_NAME, orderConsumer);
         } catch (IOException e) {
             logger.error("Can't start consumer.", e);
         }
 
         logger.debug("Listening queueing consumer.");
-        new Thread(new OrderObserver(session, channelOrderReceiver, consumer)).start();
+        new Thread(new OrderObserver(session, channelOrderReceiver, orderConsumer)).start();
 
         logger.debug("Session starting");
         session.start();
@@ -138,6 +138,7 @@ public class ThinBot implements LoginCallback,
         try {
             logger.debug("Closing rabbitmq channels.");
             channelTickProducer.close();
+            channelAccountProducer.close();
             channelOrderReceiver.close();
             logger.debug("Closing rabbitmq connection.");
             connection.close();
