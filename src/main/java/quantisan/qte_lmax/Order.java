@@ -82,7 +82,7 @@ public class Order {
                 public void onFailure(FailureResponse failureResponse)
                 {
                     setOrderState(OrderState.FAIL);
-
+                    // TODO should publish accounting message to notify order failed
                     if (!failureResponse.isSystemFailure())
                     {
                         logger.error("Order data error - Message: {}, Description: {}",
