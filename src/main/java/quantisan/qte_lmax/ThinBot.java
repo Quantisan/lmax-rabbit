@@ -8,6 +8,8 @@ import com.lmax.api.heartbeat.HeartbeatEventListener;
 import com.lmax.api.heartbeat.HeartbeatRequest;
 import com.lmax.api.heartbeat.HeartbeatSubscriptionRequest;
 import com.lmax.api.orderbook.*;
+import com.lmax.api.reject.InstructionRejectedEvent;
+import com.lmax.api.reject.InstructionRejectedEventListener;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
@@ -17,9 +19,13 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
-public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBookEventListener, StreamFailureListener, SessionDisconnectedListener {
+public class ThinBot implements LoginCallback,
+        HeartbeatEventListener, OrderBookEventListener, StreamFailureListener, SessionDisconnectedListener,
+        InstructionRejectedEventListener
+{
     final static Logger logger = LoggerFactory.getLogger(ThinBot.class);
     private final static String TICKS_EXCHANGE_NAME = "ticks";
+    private final static String ACCOUNTING_QUEUE_NAME = "lmax.accounting";
     private final static String ORDER_QUEUE_NAME = "lmax_order";  // TODO take username param and use individual order channel
     private final static int HEARTBEAT_PERIOD = 4 * 60 * 1000;
     private final static int reconnectTries = 5;
@@ -28,6 +34,7 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
     private Session session;
     private int reconnectCount;
     private Channel channelTickProducer;
+    private Channel channelAccountProducer;
     private Channel channelOrderReceiver;
 
     public static void loginLmax(String url) {
@@ -51,7 +58,7 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
         session.registerStreamFailureListener(this);
         session.registerSessionDisconnectedListener(this);
 
-        // subscribe to heatbeat //
+        // subscribe to heartbeat //
         session.subscribe(new HeartbeatSubscriptionRequest(), new Callback()
         {
             public void onSuccess() { }
@@ -80,6 +87,11 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
             channelTickProducer = connection.createChannel();
             logger.debug("Declaring tick exchange.");
             channelTickProducer.exchangeDeclare(TICKS_EXCHANGE_NAME, "topic", true);  // durable
+
+            channelAccountProducer = connection.createChannel();
+            logger.debug("Declaring accounting queue.");
+            channelAccountProducer.queueDeclare(ACCOUNTING_QUEUE_NAME, false, true, false, null);
+
             channelOrderReceiver = connection.createChannel();
             logger.debug("Declaring order queue.");
             channelOrderReceiver.queueDeclare(ORDER_QUEUE_NAME, false, true, false, null);  // exclusive
@@ -132,17 +144,6 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
             logger.error("Can't close rabbitmq connection.", e);
             System.exit(1);
         }
-    }
-
-    @Override
-    public void onLoginFailure(FailureResponse failureResponse) {
-        throw new RuntimeException("Unable to login: " + failureResponse.getDescription(), failureResponse.getException());
-    }
-
-    @Override
-    public void notifyStreamFailure(Exception e)
-    {
-        logger.error("Stream failure. {}.", e);
     }
 
     //******************************************************************************//
@@ -213,6 +214,20 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
 
     //******************************************************************************//
 
+    //******************************************************************************//
+    // Handling errors
+
+    @Override
+    public void onLoginFailure(FailureResponse failureResponse) {
+        throw new RuntimeException("Unable to login: " + failureResponse.getDescription(), failureResponse.getException());
+    }
+
+    @Override
+    public void notifyStreamFailure(Exception e)
+    {
+        logger.error("Stream failure. {}.", e);
+    }
+
     @Override
     public void notifySessionDisconnected() {
         if (++reconnectCount <= reconnectTries)
@@ -224,4 +239,22 @@ public class ThinBot implements LoginCallback, HeartbeatEventListener, OrderBook
             System.exit(1);
         }
     }
+
+    @Override
+    public void notify(InstructionRejectedEvent instructionRejected) {
+        logger.warn("Rejection received for {}, reason: {}.", instructionRejected.getInstructionId(), instructionRejected.getReason());
+        String message = "{:type :instruction-reject"
+                + ", :order-id \"" + instructionRejected.getInstructionId() + "\""
+                + ", :account-id " + instructionRejected.getAccountId()
+                + ", :instrument " + instructionRejected.getInstructionId()
+                + ", :reason " + instructionRejected.getReason() + "}";
+
+        try {
+            channelAccountProducer.basicPublish("", ACCOUNTING_QUEUE_NAME, null, message.getBytes());
+        } catch (IOException e) {
+            logger.error("Account message publish error.", e);
+        }
+
+    }
+    //******************************************************************************//
 }
