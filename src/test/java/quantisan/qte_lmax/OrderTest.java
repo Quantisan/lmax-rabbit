@@ -9,7 +9,7 @@ public class OrderTest {
     @Test
     public void testMarketOrderConstructor() throws Exception {
         String message = "{:instrument \"EURUSD\", :order-id \"my_order_1\", :quantity \"0.1\", :stop-loss-offset \"10\", :order-type :market}";
-        Order order = new Order(null, message);
+        Order order = new Order(null, null, message);
         assertEquals(4001, order.getInstrumentId());
         assertEquals("my_order_1", order.getOrderId());
         assertEquals("0.1", order.getQuantity().toString());
@@ -19,7 +19,7 @@ public class OrderTest {
     @Test
     public void testAmendOrderConstructor() throws Exception {
         String message = "{:instrument \"EURUSD\", :order-id \"my_order_1\", :stop-loss-offset \"20\", :order-type :amend-stop}";
-        Order order = new Order(null, message);
+        Order order = new Order(null, null, message);
         assertEquals(4001, order.getInstrumentId());
         assertEquals("my_order_1", order.getOrderId());
         assertEquals(FixedPointNumber.ZERO, order.getQuantity());

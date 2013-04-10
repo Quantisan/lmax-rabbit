@@ -10,14 +10,16 @@ import java.io.IOException;
 
 public class OrderObserver implements Runnable {
     final static Logger logger = LoggerFactory.getLogger(OrderObserver.class);
-    private final Channel channel;
-    private final QueueingConsumer consumer;
+    private final Channel channelOrderReceiver;
+    private final QueueingConsumer orderConsumer;
     private final Session session;
+    private final Channel channelAccountProducer;
 
-    public OrderObserver(Session session, Channel channel, QueueingConsumer consumer) {
+    public OrderObserver(Session session, Channel channelOrderReceiver, Channel channelAccountProducer, QueueingConsumer orderConsumer) {
         this.session = session;
-        this.channel = channel;
-        this.consumer = consumer;
+        this.channelOrderReceiver = channelOrderReceiver;
+        this.channelAccountProducer = channelAccountProducer;
+        this.orderConsumer = orderConsumer;
     }
 
     @Override
@@ -25,14 +27,14 @@ public class OrderObserver implements Runnable {
         while (!Thread.currentThread().isInterrupted()) {
             QueueingConsumer.Delivery delivery = null;
             try {
-                delivery = consumer.nextDelivery();
+                delivery = orderConsumer.nextDelivery();
             } catch (InterruptedException e) {
                 logger.error("Interrupted before order delivery.", e);
             }
-            Order order = new Order(session, new String(delivery.getBody()));
+            Order order = new Order(session, channelAccountProducer, new String(delivery.getBody()));
             order.execute();
             try {
-                channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
+                channelOrderReceiver.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
             } catch (IOException e) {
                 logger.error("Fail to acknowledge order message.", e);
             }
