@@ -26,7 +26,7 @@ public class ThinBot implements LoginCallback,
     final static Logger logger = LoggerFactory.getLogger(ThinBot.class);
     private final static String TICKS_EXCHANGE_NAME = "ticks";
     private final static String ACCOUNTING_QUEUE_NAME = "lmax.accounting";
-    private final static String ORDER_QUEUE_NAME = "lmax_order";  // TODO take username param and use individual order channel
+    private final static String ORDER_QUEUE_NAME = "lmax.order";  // TODO take username param and use individual order channel
     private final static int HEARTBEAT_PERIOD = 4 * 60 * 1000;
     private final static int reconnectTries = 5;
     private final static String brokerUrl = "https://testapi.lmaxtrader.com";
