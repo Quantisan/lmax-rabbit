@@ -9,6 +9,9 @@ import com.lmax.api.heartbeat.HeartbeatSubscriptionRequest;
 import com.lmax.api.order.*;
 import com.lmax.api.order.Order;
 import com.lmax.api.orderbook.*;
+import com.lmax.api.position.PositionEvent;
+import com.lmax.api.position.PositionEventListener;
+import com.lmax.api.position.PositionSubscriptionRequest;
 import com.lmax.api.reject.InstructionRejectedEvent;
 import com.lmax.api.reject.InstructionRejectedEventListener;
 import com.rabbitmq.client.Channel;
@@ -22,7 +25,8 @@ import java.io.IOException;
 
 public class ThinBot implements LoginCallback,
         HeartbeatEventListener, OrderBookEventListener, StreamFailureListener, SessionDisconnectedListener,
-        InstructionRejectedEventListener, ExecutionEventListener, OrderEventListener, AccountStateEventListener
+        InstructionRejectedEventListener, ExecutionEventListener, OrderEventListener, AccountStateEventListener,
+        PositionEventListener
 {
     final static Logger logger = LoggerFactory.getLogger(ThinBot.class);
     private final static String RABBITMQ_SERVER = "localhost";
@@ -62,6 +66,7 @@ public class ThinBot implements LoginCallback,
         session.registerOrderEventListener(this);
         session.registerExecutionEventListener(this);
         session.registerAccountStateEventListener(this);
+        session.registerPositionEventListener(this);
 
         // subscribe to heartbeat //
         session.subscribe(new HeartbeatSubscriptionRequest(), new Callback()
@@ -162,6 +167,20 @@ public class ThinBot implements LoginCallback,
             public void onFailure(FailureResponse failureResponse)
             {
                 logger.error("Failed to subscribe to account event: {}", failureResponse);
+                throw new RuntimeException("Account event subscription failed");
+            }
+        });
+
+        session.subscribe(new PositionSubscriptionRequest(), new Callback() {
+            @Override
+            public void onSuccess() {
+                logger.debug("Successful position event subscription.");
+            }
+
+            @Override
+            public void onFailure(FailureResponse failureResponse) {
+                logger.error("Failed to subscribe to position event: {}", failureResponse);
+                throw new RuntimeException("Position event subscription failed");
             }
         });
 
@@ -251,7 +270,7 @@ public class ThinBot implements LoginCallback,
 
     @Override
     public void notify(AccountStateEvent accountStateEvent) {
-        logger.info(accountStateEvent.toString());
+//        logger.info(accountStateEvent.toString());
     }
 
     //******************************************************************************//
@@ -276,7 +295,12 @@ public class ThinBot implements LoginCallback,
         String instructionId = order.getInstructionId();
         long instrumentId = order.getInstrumentId();
         boolean complete = isComplete(order);
-        logger.info("Execution: {}\nOrder: {}", execution.toString(), order.toString());
+//        logger.info("Execution: {}\nOrder: {}", execution.toString(), order.toString());
+    }
+
+    @Override
+    public void notify(PositionEvent positionEvent) {
+        logger.info(positionEvent.toString());
     }
     //******************************************************************************//
 
