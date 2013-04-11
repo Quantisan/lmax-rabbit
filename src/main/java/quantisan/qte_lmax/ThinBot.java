@@ -7,6 +7,8 @@ import com.lmax.api.heartbeat.HeartbeatCallback;
 import com.lmax.api.heartbeat.HeartbeatEventListener;
 import com.lmax.api.heartbeat.HeartbeatRequest;
 import com.lmax.api.heartbeat.HeartbeatSubscriptionRequest;
+import com.lmax.api.order.*;
+import com.lmax.api.order.Order;
 import com.lmax.api.orderbook.*;
 import com.lmax.api.reject.InstructionRejectedEvent;
 import com.lmax.api.reject.InstructionRejectedEventListener;
@@ -21,7 +23,7 @@ import java.io.IOException;
 
 public class ThinBot implements LoginCallback,
         HeartbeatEventListener, OrderBookEventListener, StreamFailureListener, SessionDisconnectedListener,
-        InstructionRejectedEventListener
+        InstructionRejectedEventListener, ExecutionEventListener, OrderEventListener
 {
     final static Logger logger = LoggerFactory.getLogger(ThinBot.class);
     private final static String RABBITMQ_SERVER = "localhost";
@@ -58,11 +60,15 @@ public class ThinBot implements LoginCallback,
         session.registerOrderBookEventListener(this);
         session.registerStreamFailureListener(this);
         session.registerSessionDisconnectedListener(this);
+        session.registerOrderEventListener(this);
+        session.registerExecutionEventListener(this);
 
         // subscribe to heartbeat //
         session.subscribe(new HeartbeatSubscriptionRequest(), new Callback()
         {
-            public void onSuccess() { }
+            public void onSuccess() {
+                logger.debug("Subscribed to heartbeat event.");
+            }
 
             @Override
             public void onFailure(final FailureResponse failureResponse)
@@ -131,6 +137,18 @@ public class ThinBot implements LoginCallback,
 
         logger.debug("Listening queueing consumer.");
         new Thread(new OrderObserver(session, channelOrderReceiver, channelAccountProducer, orderConsumer)).start();
+        session.subscribe(new ExecutionSubscriptionRequest(), new Callback() {
+            @Override
+            public void onSuccess() {
+                logger.debug("Subscribed to execution event.");
+            }
+
+            @Override
+            public void onFailure(FailureResponse failureResponse) {
+                logger.error("Failed to subscribe to execution event. {}, ", failureResponse.getMessage(), failureResponse.getDescription());
+                throw new RuntimeException("Execution event subscription failed");
+            }
+        });
 
         logger.debug("Session starting");
         session.start();
@@ -160,9 +178,7 @@ public class ThinBot implements LoginCallback,
                 String routingKey = getRouting(tick.getInstrumentName());
                 String message = tick.toEdn();
                 channelTickProducer.basicPublish(TICKS_EXCHANGE_NAME, routingKey, null, message.getBytes());
-                logger.debug("Sent {}", tick.toString());
-
-
+//                logger.debug("Sent {}", tick.toString());
             } catch (IOException e) {
                 logger.error("Error publishing tick.", e);
             }
@@ -217,6 +233,32 @@ public class ThinBot implements LoginCallback,
     //******************************************************************************//
 
     //******************************************************************************//
+    // Order
+    private boolean isComplete(com.lmax.api.order.Order order)
+    {
+        long completedQuantity = order.getFilledQuantity().longValue() + order.getCancelledQuantity().longValue();
+        return order.getQuantity().longValue() == completedQuantity;
+    }
+
+    @Override
+    public void notify(Order order) {
+//        logger.info(order.toString());
+    }
+
+    @Override
+    public void notify(Execution execution) {
+        com.lmax.api.order.Order order = execution.getOrder();
+        String filledQuantity = order.getFilledQuantity().toString();
+        String lmaxOrderId = order.getOrderId();
+        String orderId = order.getInstructionId();
+        String instructionId = order.getInstructionId();
+        long instrumentId = order.getInstrumentId();
+        boolean complete = isComplete(order);
+        logger.info("Execution: {}\nOrder: {}", execution.toString(), order.toString());
+    }
+    //******************************************************************************//
+
+    //******************************************************************************//
     // Handling errors
 
     @Override
@@ -243,7 +285,7 @@ public class ThinBot implements LoginCallback,
     }
 
     @Override
-    public void notify(InstructionRejectedEvent instructionRejected) {
+    public void notify(InstructionRejectedEvent instructionRejected) {      // TODO not seem to work
         logger.warn("Rejection received for {}, reason: {}.", instructionRejected.getInstructionId(), instructionRejected.getReason());
         String message = "{:type :instruction-rejected"
                 + ", :order-id \"" + instructionRejected.getInstructionId() + "\""
