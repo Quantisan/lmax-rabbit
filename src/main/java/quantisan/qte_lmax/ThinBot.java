@@ -1,8 +1,7 @@
 package quantisan.qte_lmax;
 
 import com.lmax.api.*;
-import com.lmax.api.account.LoginCallback;
-import com.lmax.api.account.LoginRequest;
+import com.lmax.api.account.*;
 import com.lmax.api.heartbeat.HeartbeatCallback;
 import com.lmax.api.heartbeat.HeartbeatEventListener;
 import com.lmax.api.heartbeat.HeartbeatRequest;
@@ -23,7 +22,7 @@ import java.io.IOException;
 
 public class ThinBot implements LoginCallback,
         HeartbeatEventListener, OrderBookEventListener, StreamFailureListener, SessionDisconnectedListener,
-        InstructionRejectedEventListener, ExecutionEventListener, OrderEventListener
+        InstructionRejectedEventListener, ExecutionEventListener, OrderEventListener, AccountStateEventListener
 {
     final static Logger logger = LoggerFactory.getLogger(ThinBot.class);
     private final static String RABBITMQ_SERVER = "localhost";
@@ -62,6 +61,7 @@ public class ThinBot implements LoginCallback,
         session.registerSessionDisconnectedListener(this);
         session.registerOrderEventListener(this);
         session.registerExecutionEventListener(this);
+        session.registerAccountStateEventListener(this);
 
         // subscribe to heartbeat //
         session.subscribe(new HeartbeatSubscriptionRequest(), new Callback()
@@ -150,6 +150,21 @@ public class ThinBot implements LoginCallback,
             }
         });
 
+        session.subscribe(new AccountSubscriptionRequest(), new Callback()
+        {
+            @Override
+            public void onSuccess()
+            {
+                logger.debug("Successful account event subscription.");
+            }
+
+            @Override
+            public void onFailure(FailureResponse failureResponse)
+            {
+                logger.error("Failed to subscribe to account event: {}", failureResponse);
+            }
+        });
+
         logger.debug("Session starting");
         session.start();
 
@@ -231,6 +246,13 @@ public class ThinBot implements LoginCallback,
     }
 
     //******************************************************************************//
+
+
+
+    @Override
+    public void notify(AccountStateEvent accountStateEvent) {
+        logger.info(accountStateEvent.toString());
+    }
 
     //******************************************************************************//
     // Order
