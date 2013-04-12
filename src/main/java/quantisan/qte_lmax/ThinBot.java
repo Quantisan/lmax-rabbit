@@ -59,7 +59,7 @@ public class ThinBot implements LoginCallback,
 
         this.session = session;
         this.reconnectCount = 0;
-        session.registerHeartbeatListener(this);
+        session.registerHeartbeatListener(this);             // TODO refactor subscribe stuff into func
         session.registerOrderBookEventListener(this);
         session.registerStreamFailureListener(this);
         session.registerSessionDisconnectedListener(this);
@@ -242,39 +242,13 @@ public class ThinBot implements LoginCallback,
     //******************************************************************************//
 
     //******************************************************************************//
-    //   Heart Beat
-
-    @Override
-    public void notify(long accountId, String token) {
-    }
-
-    private void requestHeartbeat()
-    {
-        this.session.requestHeartbeat(new HeartbeatRequest("token"), new HeartbeatCallback()
-        {
-            @Override
-            public void onSuccess(String token) { }
-
-            @Override
-            public void onFailure(FailureResponse failureResponse)
-            {
-                logger.warn(failureResponse.getMessage(), failureResponse.getDescription());
-                throw new RuntimeException("Heartbeat receive failed");
-            }
-        });
-    }
-
-    //******************************************************************************//
-
-
+    // Account and order states event
 
     @Override
     public void notify(AccountStateEvent accountStateEvent) {
 //        logger.info(accountStateEvent.toString());
     }
 
-    //******************************************************************************//
-    // Order
     private boolean isComplete(com.lmax.api.order.Order order)
     {
         long completedQuantity = order.getFilledQuantity().longValue() + order.getCancelledQuantity().longValue();
@@ -347,4 +321,29 @@ public class ThinBot implements LoginCallback,
 
     }
     //******************************************************************************//
+
+    //******************************************************************************//
+    //   Heart Beat
+
+    @Override
+    public void notify(long accountId, String token) {
+    }
+
+    private void requestHeartbeat()
+    {
+        this.session.requestHeartbeat(new HeartbeatRequest("token"), new HeartbeatCallback()
+        {
+            @Override
+            public void onSuccess(String token) { }
+
+            @Override
+            public void onFailure(FailureResponse failureResponse)
+            {
+                logger.warn(failureResponse.getMessage(), failureResponse.getDescription());
+                throw new RuntimeException("Heartbeat receive failed");
+            }
+        });
+    }
+    //******************************************************************************//
+
 }
