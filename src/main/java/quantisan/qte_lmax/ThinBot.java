@@ -249,12 +249,6 @@ public class ThinBot implements LoginCallback,
 //        logger.info(accountStateEvent.toString());
     }
 
-    private boolean isComplete(com.lmax.api.order.Order order)
-    {
-        long completedQuantity = order.getFilledQuantity().longValue() + order.getCancelledQuantity().longValue();
-        return order.getQuantity().longValue() == completedQuantity;
-    }
-
     @Override
     public void notify(Order order) {
 //        logger.info(order.toString());
@@ -262,19 +256,18 @@ public class ThinBot implements LoginCallback,
 
     @Override
     public void notify(Execution execution) {
-        com.lmax.api.order.Order order = execution.getOrder();
-        String filledQuantity = order.getFilledQuantity().toString();
-        String lmaxOrderId = order.getOrderId();
-        String orderId = order.getInstructionId();
-        String instructionId = order.getInstructionId();
-        long instrumentId = order.getInstrumentId();
-        boolean complete = isComplete(order);
-//        logger.info("Execution: {}\nOrder: {}", execution.toString(), order.toString());
+        String message = EdnMessage.executionEvent(execution);
+        logger.debug("Order executed: {}.", message);
+        try {
+            channelAccountProducer.basicPublish("", ACCOUNTING_QUEUE_NAME, null, message.getBytes());
+        } catch (IOException e) {
+            logger.error("Cannot publish execution event: ", e);
+        }
     }
 
     @Override
     public void notify(PositionEvent positionEvent) {
-        logger.info(positionEvent.toString());
+//        logger.info(positionEvent.toString());
     }
     //******************************************************************************//
 
