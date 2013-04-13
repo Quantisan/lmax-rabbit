@@ -114,7 +114,7 @@ public class EdnMessageTest {
             }
         };
 
-        assertEquals("{:message-type :execution-event," +
+        assertEquals("{:message-type :execution-event," + " :account-id 12345," +
                 " :lmax-order-type \"STOP_PROFIT_ORDER\", :lmax-order-id \"ABC123\", :order-id \"my_order_1\"," +
                 " :original-order-id \"my_order_1_original\", :fill-price \"1.3\", :quantity \"1\"," +
                 " :filled-quantity \"1\", :cancelled-quantity \"0\", :instrument \"EURUSD\", :commission \"0.03\"," +

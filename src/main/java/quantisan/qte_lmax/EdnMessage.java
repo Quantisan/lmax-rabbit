@@ -27,6 +27,7 @@ public final class EdnMessage {
         boolean complete = isOrderComplete(order);
 
         return "{:message-type :execution-event" +
+                ", :account-id " + order.getAccountId() +
                 ", :lmax-order-type \"" + lmaxOrderType + "\""
                 + ", :lmax-order-id \"" + lmaxOrderId + "\""
                 + ", :order-id \"" + orderId + "\""
