@@ -300,7 +300,7 @@ public class ThinBot implements LoginCallback,
     @Override
     public void notify(InstructionRejectedEvent instructionRejected) {      // TODO not seem to work
         logger.warn("Rejection received for {}, reason: {}.", instructionRejected.getInstructionId(), instructionRejected.getReason());
-        String message = "{:type :instruction-rejected"
+        String message = "{:type :instruction-rejected"     // TODO move into EdnMessage
                 + ", :order-id \"" + instructionRejected.getInstructionId() + "\""
                 + ", :account-id " + instructionRejected.getAccountId()
                 + ", :instrument " + instructionRejected.getInstrumentId()
