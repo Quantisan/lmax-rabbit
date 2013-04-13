@@ -26,7 +26,8 @@ public final class EdnMessage {
         String commission = order.getCommission().toString();
         boolean complete = isOrderComplete(order);
 
-        return "{:lmax-order-type \"" + lmaxOrderType + "\""
+        return "{:message-type :execution-event" +
+                ", :lmax-order-type \"" + lmaxOrderType + "\""
                 + ", :lmax-order-id \"" + lmaxOrderId + "\""
                 + ", :order-id \"" + orderId + "\""
                 + ", :original-order-id \"" + originalOrderId + "\""
@@ -40,7 +41,8 @@ public final class EdnMessage {
     }
 
     public static String positionEvent(PositionEvent pe) {
-        return "{:account-id " + pe.getAccountId() +
+        return "{:message-type :position-event" +
+                ", :account-id " + pe.getAccountId() +
                 ", :instrument " + pe.getInstrumentId() +
                 ", :valuation \"" + pe.getValuation() + "\"" +
                 ", :short-unfilled-cost \"" + pe.getShortUnfilledCost() + "\"" +
