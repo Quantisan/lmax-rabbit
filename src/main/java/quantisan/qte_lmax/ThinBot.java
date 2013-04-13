@@ -256,7 +256,7 @@ public class ThinBot implements LoginCallback,
     @Override
     public void notify(Execution execution) {
         String message = EdnMessage.executionEvent(execution);
-        logger.debug("Order executed: {}.", message);
+        logger.info("Order executed: {}.", message);
         try {
             channelAccountProducer.basicPublish("", ACCOUNTING_QUEUE_NAME, null, message.getBytes());
         } catch (IOException e) {
@@ -266,7 +266,13 @@ public class ThinBot implements LoginCallback,
 
     @Override
     public void notify(PositionEvent positionEvent) {
-        logger.info(positionEvent.toString());
+        String message = EdnMessage.positionEvent(positionEvent);
+        logger.info("Position message: {}.", message);
+        try {
+            channelAccountProducer.basicPublish("", ACCOUNTING_QUEUE_NAME, null, message.getBytes());
+        } catch (IOException e) {
+            logger.error("Cannot publish position event: ", e);
+        }
     }
     //******************************************************************************//
 

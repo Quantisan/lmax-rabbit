@@ -14,7 +14,7 @@ public final class EdnMessage {
 
     public static String executionEvent(Execution exe) {
         com.lmax.api.order.Order order = exe.getOrder();
-        String lmaxOrderId = order.getOrderId();
+        String lmaxOrderId = order.getOrderId();  // TODO refactor into return
         String lmaxOrderType = order.getOrderType().toString();
         String orderId = order.getInstructionId();
         String originalOrderId = order.getOriginalInstructionId();
