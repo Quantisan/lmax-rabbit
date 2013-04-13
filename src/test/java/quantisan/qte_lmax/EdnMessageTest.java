@@ -4,6 +4,7 @@ import com.lmax.api.FixedPointNumber;
 import com.lmax.api.TimeInForce;
 import com.lmax.api.order.*;
 import com.lmax.api.order.Order;
+import com.lmax.api.position.PositionEvent;
 import org.junit.Test;
 
 import static junit.framework.Assert.assertEquals;
@@ -118,5 +119,54 @@ public class EdnMessageTest {
                 " :filled-quantity \"1\", :cancelled-quantity \"0\", :instrument \"EURUSD\", :commission \"0.03\"," +
                 " :completed? true}",
                 EdnMessage.executionEvent(exec));
+    }
+
+    @Test
+    public void testPositionEvent() throws Exception {
+        PositionEvent pe = new PositionEvent() {
+            @Override
+            public long getAccountId() {
+                return 1327636348;
+            }
+
+            @Override
+            public long getInstrumentId() {
+                return 4001;
+            }
+
+            @Override
+            public FixedPointNumber getValuation() {
+                return FixedPointNumber.valueOf("-1339.6135");
+            }
+
+            @Override
+            public FixedPointNumber getShortUnfilledCost() {
+                return FixedPointNumber.ZERO;
+            }
+
+            @Override
+            public FixedPointNumber getLongUnfilledCost() {
+                return FixedPointNumber.ZERO;
+            }
+
+            @Override
+            public FixedPointNumber getOpenQuantity() {
+                return FixedPointNumber.valueOf("-10.1");
+            }
+
+            @Override
+            public FixedPointNumber getCumulativeCost() {
+                return FixedPointNumber.valueOf("-132279.56");
+            }
+
+            @Override
+            public FixedPointNumber getOpenCost() {
+                return FixedPointNumber.valueOf("-132329.19");
+            }
+        };
+        assertEquals("{:account-id 1327636348, :instrument 4001, :valuation \"-1339.6135\"," +
+                " :short-unfilled-cost \"0\", :long-unfilled-cost \"0\", :quantity \"-10.1\", " +
+                ":cumulative-cost \"-132279.56\", :open-cost \"-132329.19\"}",
+                EdnMessage.positionEvent(pe));
     }
 }

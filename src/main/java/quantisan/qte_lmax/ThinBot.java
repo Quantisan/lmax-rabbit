@@ -210,8 +210,7 @@ public class ThinBot implements LoginCallback,
         if(tick.isValid()) {
             try {
                 String routingKey = getRouting(tick.getInstrumentName());
-                String message = tick.toEdn();
-                channelTickProducer.basicPublish(TICKS_EXCHANGE_NAME, routingKey, null, message.getBytes());
+                channelTickProducer.basicPublish(TICKS_EXCHANGE_NAME, routingKey, null, tick.toEdn().getBytes());
 //                logger.debug("Sent {}", tick.toString());
             } catch (IOException e) {
                 logger.error("Error publishing tick.", e);
@@ -267,7 +266,7 @@ public class ThinBot implements LoginCallback,
 
     @Override
     public void notify(PositionEvent positionEvent) {
-//        logger.info(positionEvent.toString());
+        logger.info(positionEvent.toString());
     }
     //******************************************************************************//
 

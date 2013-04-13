@@ -1,6 +1,7 @@
 package quantisan.qte_lmax;
 
 import com.lmax.api.order.Execution;
+import com.lmax.api.position.PositionEvent;
 
 public final class EdnMessage {
     private EdnMessage() {};
@@ -25,7 +26,7 @@ public final class EdnMessage {
         String commission = order.getCommission().toString();
         boolean complete = isOrderComplete(order);
 
-        String message = "{:lmax-order-type \"" + lmaxOrderType + "\""
+        return "{:lmax-order-type \"" + lmaxOrderType + "\""
                 + ", :lmax-order-id \"" + lmaxOrderId + "\""
                 + ", :order-id \"" + orderId + "\""
                 + ", :original-order-id \"" + originalOrderId + "\""
@@ -36,6 +37,16 @@ public final class EdnMessage {
                 + ", :instrument \"" + instrument + "\""
                 + ", :commission \"" + commission + "\""
                 + ", :completed? " + complete + "}";
-        return message;
+    }
+
+    public static String positionEvent(PositionEvent pe) {
+        return "{:account-id " + pe.getAccountId() +
+                ", :instrument " + pe.getInstrumentId() +
+                ", :valuation \"" + pe.getValuation() + "\"" +
+                ", :short-unfilled-cost \"" + pe.getShortUnfilledCost() + "\"" +
+                ", :long-unfilled-cost \"" + pe.getLongUnfilledCost() + "\"" +
+                ", :quantity \"" + pe.getOpenQuantity() + "\"" +
+                ", :cumulative-cost \"" + pe.getCumulativeCost() + "\"" +
+                ", :open-cost \"" + pe.getOpenCost() + "\"}";
     }
 }
