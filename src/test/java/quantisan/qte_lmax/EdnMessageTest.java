@@ -166,7 +166,7 @@ public class EdnMessageTest {
             }
         };
         assertEquals("{:message-type :position-event," +
-                " :account-id 1327636348, :instrument 4001, :valuation \"-1339.6135\"," +
+                " :account-id 1327636348, :instrument \"EURUSD\", :valuation \"-1339.6135\"," +
                 " :short-unfilled-cost \"0\", :long-unfilled-cost \"0\", :quantity \"-10.1\"," +
                 " :cumulative-cost \"-132279.56\", :open-cost \"-132329.19\"}",
                 EdnMessage.positionEvent(pe));

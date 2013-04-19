@@ -31,6 +31,6 @@ public class Instrument {
     }
 
     public static long toId(String name) {
-        return instrumentNameIdMap.get(name);
+        return instrumentNameIdMap.get(name.toUpperCase());
     }
 }
