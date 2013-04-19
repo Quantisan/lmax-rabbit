@@ -44,7 +44,7 @@ public final class EdnMessage {
     public static String positionEvent(PositionEvent pe) {
         return "{:message-type :position-event" +
                 ", :account-id " + pe.getAccountId() +
-                ", :instrument " + pe.getInstrumentId() +
+                ", :instrument " + Instrument.toName(pe.getInstrumentId()) +
                 ", :valuation \"" + pe.getValuation() + "\"" +
                 ", :short-unfilled-cost \"" + pe.getShortUnfilledCost() + "\"" +
                 ", :long-unfilled-cost \"" + pe.getLongUnfilledCost() + "\"" +
