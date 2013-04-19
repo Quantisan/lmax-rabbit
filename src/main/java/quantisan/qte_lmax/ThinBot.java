@@ -31,7 +31,7 @@ public class ThinBot implements LoginCallback,
     final static Logger logger = LoggerFactory.getLogger(ThinBot.class);
     private final static String RABBITMQ_SERVER = "localhost";
     private final static String TICKS_EXCHANGE_NAME = "ticks";
-    public final static String ACCOUNTING_QUEUE_NAME = "accounting.lmax";
+    public final static String ACCOUNTING_EXCHANGE_NAME = "accounting.lmax";
     private final static String ORDER_QUEUE_NAME = "engine.command.lmax";  // TODO take username param and use individual order channel
     private final static int HEARTBEAT_PERIOD = 4 * 60 * 1000;
     private final static int reconnectTries = 5;
@@ -101,8 +101,8 @@ public class ThinBot implements LoginCallback,
             channelTickProducer.exchangeDeclare(TICKS_EXCHANGE_NAME, "topic", true);  // durable
 
             channelAccountProducer = connection.createChannel();
-            logger.debug("Declaring accounting queue.");
-            channelAccountProducer.queueDeclare(ACCOUNTING_QUEUE_NAME, true, false, false, null);
+            logger.debug("Declaring accounting exchange.");
+            channelAccountProducer.exchangeDeclare(ACCOUNTING_EXCHANGE_NAME, "fanout", true);
 
             channelOrderReceiver = connection.createChannel();
             logger.debug("Declaring order queue.");
@@ -258,7 +258,7 @@ public class ThinBot implements LoginCallback,
         String message = EdnMessage.executionEvent(execution);
         logger.info("Order executed: {}.", message);
         try {
-            channelAccountProducer.basicPublish("", ACCOUNTING_QUEUE_NAME, null, message.getBytes());
+            channelAccountProducer.basicPublish(ACCOUNTING_EXCHANGE_NAME, "", null, message.getBytes());
         } catch (IOException e) {
             logger.error("Cannot publish execution event: ", e);
         }
@@ -269,7 +269,7 @@ public class ThinBot implements LoginCallback,
         String message = EdnMessage.positionEvent(positionEvent);
         logger.info("Position message: {}.", message);
         try {
-            channelAccountProducer.basicPublish("", ACCOUNTING_QUEUE_NAME, null, message.getBytes());
+            channelAccountProducer.basicPublish(ACCOUNTING_EXCHANGE_NAME, "", null, message.getBytes());
         } catch (IOException e) {
             logger.error("Cannot publish position event: ", e);
         }
@@ -312,7 +312,7 @@ public class ThinBot implements LoginCallback,
                 + ", :reason " + instructionRejected.getReason() + "}";
 
         try {
-            channelAccountProducer.basicPublish("", ACCOUNTING_QUEUE_NAME, null, message.getBytes());
+            channelAccountProducer.basicPublish("", ACCOUNTING_EXCHANGE_NAME, null, message.getBytes());
         } catch (IOException e) {
             logger.error("Account message publish error.", e);
         }

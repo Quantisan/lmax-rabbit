@@ -85,12 +85,12 @@ public class Order {
                         public void onFailure(FailureResponse failureResponse)
                         {
                             setOrderState(OrderState.FAIL);
-                            String message = "{:type :order-failed"
+                            String message = "{:message-type :order-failed"     // TODO wire into qte-transcript
                                     + ", :order-id \"" + getOrderId() + "\""
                                     + ", :instrument " + getInstrumentId()
                                     + ", :reason " + failureResponse.getMessage() + "}";
                             try {
-                                channel.basicPublish("", ThinBot.ACCOUNTING_QUEUE_NAME, null, message.getBytes());
+                                channel.basicPublish("", ThinBot.ACCOUNTING_EXCHANGE_NAME, null, message.getBytes());
                             } catch (IOException e) {
                                 logger.error("Account message publish error.", e);
                             }
@@ -129,12 +129,12 @@ public class Order {
                 public void onFailure(FailureResponse failureResponse)
                 {
                     setOrderState(OrderState.FAIL);
-                    String message = "{:type :order-failed"
+                    String message = "{:message-type :order-failed"
                             + ", :order-id \"" + getOrderId() + "\""
                             + ", :instrument " + getInstrumentId()
                             + ", :reason " + failureResponse.getMessage() + "}";
                     try {
-                        channel.basicPublish("", ThinBot.ACCOUNTING_QUEUE_NAME, null, message.getBytes());
+                        channel.basicPublish("", ThinBot.ACCOUNTING_EXCHANGE_NAME, null, message.getBytes());
                     } catch (IOException e) {
                         logger.error("Account message publish error.", e);
                     }
