@@ -35,7 +35,8 @@ public class ThinBot implements LoginCallback,
     private final static String ORDER_QUEUE_NAME = "engine.command.lmax";  // TODO take username param and use individual order channel
     private final static int HEARTBEAT_PERIOD = 4 * 60 * 1000;
     private final static int reconnectTries = 5;
-    private final static String brokerUrl = "https://testapi.lmaxtrader.com";
+    private final static String brokerUrl = "https://testapi.lmaxtrader.com";   // TODO use properties file for account config
+    public final static String USER_NAME = "paul";
 
     private Session session;
     private int reconnectCount;
@@ -307,7 +308,7 @@ public class ThinBot implements LoginCallback,
         logger.warn("Rejection received for {}, reason: {}.", instructionRejected.getInstructionId(), instructionRejected.getReason());
         String message = "{:type :instruction-rejected"     // TODO move into EdnMessage
                 + ", :order-id \"" + instructionRejected.getInstructionId() + "\""
-                + ", :account-id " + instructionRejected.getAccountId()
+                + ", :user-id " + ThinBot.USER_NAME
                 + ", :instrument " + instructionRejected.getInstrumentId()
                 + ", :reason " + instructionRejected.getReason() + "}";
 

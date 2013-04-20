@@ -27,8 +27,8 @@ public final class EdnMessage {
         boolean complete = isOrderComplete(order);
 
         return "{:message-type :execution-event" +
-                ", :account-id " + order.getAccountId() +
-                ", :lmax-order-type \"" + lmaxOrderType + "\""
+                ", :user-id \"" + ThinBot.USER_NAME + "\""
+                + ", :lmax-order-type \"" + lmaxOrderType + "\""
                 + ", :lmax-order-id \"" + lmaxOrderId + "\""
                 + ", :order-id \"" + orderId + "\""
                 + ", :original-order-id \"" + originalOrderId + "\""
@@ -43,7 +43,7 @@ public final class EdnMessage {
 
     public static String positionEvent(PositionEvent pe) {
         return "{:message-type :position-event" +
-                ", :account-id " + pe.getAccountId() +
+                ", :user-id \"" + ThinBot.USER_NAME + "\"" +
                 ", :instrument \"" + Instrument.toName(pe.getInstrumentId()) + "\"" +
                 ", :valuation \"" + pe.getValuation() + "\"" +
                 ", :short-unfilled-cost \"" + pe.getShortUnfilledCost() + "\"" +
