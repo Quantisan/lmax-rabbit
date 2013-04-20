@@ -4,6 +4,8 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
 
 public class Instrument {
+    private Instrument() {}
+
     public static final BiMap<Long, String> instrumentIdNameMap = ImmutableBiMap.<Long, String>builder()
             .put(4008L,"AUDJPY")
             .put(4007L,"AUDUSD")
