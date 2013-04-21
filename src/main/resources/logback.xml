@@ -3,7 +3,7 @@
         <file>log/qte-lmax.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
           <!-- rollover monthly -->
-          <fileNamePattern>mylog-%d{yyyy-MM}.%i.gz</fileNamePattern>
+          <fileNamePattern>log/archive/qte-lmax-%d{yyyy-MM}.%i.gz</fileNamePattern>
           <timeBasedFileNamingAndTriggeringPolicy
                 class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
             <!-- or whenever the file size reaches 100MB -->
