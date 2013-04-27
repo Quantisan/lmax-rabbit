@@ -22,6 +22,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.ConnectException;
+import java.util.Calendar;
 
 public class ThinBot implements LoginCallback,
         HeartbeatEventListener, OrderBookEventListener, StreamFailureListener, SessionDisconnectedListener,
@@ -288,7 +290,29 @@ public class ThinBot implements LoginCallback,
     @Override
     public void notifyStreamFailure(Exception e)
     {
-        logger.error("Stream failure. {}.", e);
+        if (isWeekendNow() && e instanceof ConnectException)   // TODO reconnect on Sunday
+        {
+            session.stop();
+            session.logout(new Callback() {
+                @Override
+                public void onSuccess() {
+                    logger.info("Logged out for weekend LMAX server maintenance.");
+                }
+
+                @Override
+                public void onFailure(FailureResponse failureResponse) {
+                }
+            });
+        }
+
+        logger.error("Stream failure.", e);
+    }
+
+    protected static boolean isWeekendNow() { // TODO move to helper class
+        Calendar c = Calendar.getInstance();
+        int day = c.get(Calendar.DAY_OF_WEEK);
+        int hour = c.get(Calendar.HOUR_OF_DAY);
+        return (day == 1 || day ==7);
     }
 
     @Override
