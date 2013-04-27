@@ -23,7 +23,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.ConnectException;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.List;
 
 public class ThinBot implements LoginCallback,
         HeartbeatEventListener, OrderBookEventListener, StreamFailureListener, SessionDisconnectedListener,
@@ -85,12 +87,13 @@ public class ThinBot implements LoginCallback,
             }
         });
 
+        String[] insts = new String[] {"EURUSD", "GBPUSD", "USDJPY", "XAUUSD", "XAGUSD"};
+        List<String> instList = Arrays.asList(insts);
+
         // subscribe to instrument data //
-        for (long instrumentId = 4001; instrumentId < 4018; instrumentId++) {
-            subscribeToInstrument(session, instrumentId);
+        for (String instrumentName : instList) {
+            subscribeToInstrument(session, Instrument.toId(instrumentName));
         }
-        subscribeToInstrument(session, 100637);  // Gold
-        subscribeToInstrument(session, 100639);  // Silver
 
         // RabbitMQ
         ConnectionFactory factory = new ConnectionFactory();
