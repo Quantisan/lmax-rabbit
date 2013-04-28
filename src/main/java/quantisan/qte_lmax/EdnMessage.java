@@ -4,7 +4,7 @@ import com.lmax.api.order.Execution;
 import com.lmax.api.position.PositionEvent;
 
 public final class EdnMessage {
-    private EdnMessage() {};
+    private EdnMessage() {}
 
     private static boolean isOrderComplete(com.lmax.api.order.Order order)
     {

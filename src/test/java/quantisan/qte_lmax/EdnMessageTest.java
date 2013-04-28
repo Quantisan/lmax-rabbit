@@ -58,7 +58,7 @@ public class EdnMessageTest {
 
                     @Override
                     public OrderType getOrderType() {
-                        return OrderType.STOP_PROFIT_ORDER;
+                        return OrderType.STOP_LOSS_MARKET_ORDER;
                     }
 
                     @Override
@@ -83,12 +83,12 @@ public class EdnMessageTest {
 
                     @Override
                     public FixedPointNumber getStopReferencePrice() {
-                        return null;
+                        return FixedPointNumber.valueOf("1.300");
                     }
 
                     @Override
                     public FixedPointNumber getStopLossOffset() {
-                        return null;
+                        return FixedPointNumber.valueOf("0.01");
                     }
 
                     @Override
@@ -115,7 +115,7 @@ public class EdnMessageTest {
         };
 
         assertEquals("{:message-type :execution-event," + " :user-id \"paul\"," +
-                " :lmax-order-type \"STOP_PROFIT_ORDER\", :lmax-order-id \"ABC123\", :order-id \"my_order_1\"," +
+                " :lmax-order-type \"STOP_LOSS_MARKET_ORDER\", :lmax-order-id \"ABC123\", :order-id \"my_order_1\"," +
                 " :original-order-id \"my_order_1_original\", :fill-price \"1.3\", :quantity \"1\"," +
                 " :filled-quantity \"1\", :cancelled-quantity \"0\", :instrument \"EURUSD\", :commission \"0.03\"," +
                 " :completed? true}",
