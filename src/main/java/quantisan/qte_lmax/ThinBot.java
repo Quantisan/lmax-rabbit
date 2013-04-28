@@ -112,7 +112,7 @@ public class ThinBot implements LoginCallback,
 
             channelOrderReceiver = connection.createChannel();
             logger.debug("Declaring order queue.");
-            channelOrderReceiver.queueDeclare(ORDER_QUEUE_NAME, false, true, false, null);  // exclusive
+            channelOrderReceiver.queueDeclare(ORDER_QUEUE_NAME, true, false, false, null);  // durable
         } catch (IOException e) {
             logger.error("Can't open a rabbitmq connection.", e);
             System.exit(1);
