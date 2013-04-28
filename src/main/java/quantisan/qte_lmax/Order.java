@@ -42,7 +42,8 @@ public class Order {
         Parser p = Parsers.newParser(defaultConfiguration());
         Map<?, ?> m = (Map<?, ?>) p.nextValue(pbr);
         orderId = m.get(newKeyword("order-id")).toString(); // TODO log error if order-id contains space
-        instrumentId = Instrument.toId(m.get(newKeyword("instrument")).toString());     // TODO handle possible null val
+        Keyword instrument = (Keyword)m.get(newKeyword("instrument"));
+        instrumentId = Instrument.toId(instrument.getName());     // TODO handle possible null val
         stopLossOffset = FixedPointNumber.valueOf(m.get(newKeyword("stop-loss-offset")).toString());
         Object buffer = m.get(newKeyword("quantity"));      // quantity is null for amend order
         if (buffer != null)
