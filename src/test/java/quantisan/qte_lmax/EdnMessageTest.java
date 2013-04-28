@@ -114,7 +114,7 @@ public class EdnMessageTest {
             }
         };
 
-        assertEquals("{:message-type :execution-event," + " :user-id \"paul\"," +
+        assertEquals("{:message-type :execution-event," + " :user-id \"demo\"," +
                 " :lmax-order-type \"STOP_LOSS_MARKET_ORDER\", :lmax-order-id \"ABC123\", :order-id \"my_order_1\"," +
                 " :original-order-id \"my_order_1_original\", :fill-price 1318190, :quantity 1000000," +
                 " :filled-quantity 1000000, :cancelled-quantity 0, :instrument \"EURUSD\", :commission 13212650," +
@@ -166,7 +166,7 @@ public class EdnMessageTest {
             }
         };
         assertEquals("{:message-type :position-event," +
-                " :user-id \"paul\", :instrument \"EURUSD\", :valuation -1339613500," +
+                " :user-id \"demo\", :instrument \"EURUSD\", :valuation -1339613500," +
                 " :short-unfilled-cost 0, :long-unfilled-cost 0, :quantity -10100000," +
                 " :cumulative-cost -132279560000, :open-cost -132329190000}",
                 EdnMessage.positionEvent(pe));

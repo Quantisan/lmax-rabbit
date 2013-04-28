@@ -40,7 +40,7 @@ public class ThinBot implements LoginCallback,
     private final static int HEARTBEAT_PERIOD = 4 * 60 * 1000;
     private final static int reconnectTries = 5;
     private final static String brokerUrl = "https://testapi.lmaxtrader.com";   // TODO use properties file for account config
-    public final static String USER_NAME = "paul";
+    public final static String USER_NAME = "demo";
 
     private Session session;
     private int reconnectCount;
