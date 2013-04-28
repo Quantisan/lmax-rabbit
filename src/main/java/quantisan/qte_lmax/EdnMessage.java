@@ -13,18 +13,18 @@ public final class EdnMessage {
     }
 
     public static String executionEvent(Execution exe) {
-        com.lmax.api.order.Order order = exe.getOrder();
-        String lmaxOrderId = order.getOrderId();  // TODO refactor into return
-        String lmaxOrderType = order.getOrderType().toString();
-        String orderId = order.getInstructionId();
-        String originalOrderId = order.getOriginalInstructionId();
+        com.lmax.api.order.Order o = exe.getOrder();
+        String lmaxOrderId = o.getOrderId();  // TODO refactor into return
+        String lmaxOrderType = o.getOrderType().toString();
+        String orderId = o.getInstructionId();
+        String originalOrderId = o.getOriginalInstructionId();
         Long fillPrice = exe.getPrice().longValue();
-        Long quantity = order.getQuantity().longValue();
-        Long filledQuantity = order.getFilledQuantity().longValue();
-        Long cancelledQuantity = order.getCancelledQuantity().longValue();
-        String instrument = Instrument.toName(order.getInstrumentId());
-        Long commission = order.getCommission().longValue();
-        boolean complete = isOrderComplete(order);
+        Long quantity = o.getQuantity().longValue();
+        Long filledQuantity = o.getFilledQuantity().longValue();
+        Long cancelledQuantity = o.getCancelledQuantity().longValue();
+        String instrument = Instrument.toName(o.getInstrumentId());
+        Long commission = o.getCommission().longValue();
+        boolean complete = isOrderComplete(o);
 
         return "{:message-type :execution-event" +
                 ", :user-id \"" + ThinBot.USER_NAME + "\""
@@ -32,11 +32,14 @@ public final class EdnMessage {
                 + ", :lmax-order-id \"" + lmaxOrderId + "\""
                 + ", :order-id \"" + orderId + "\""
                 + ", :original-order-id \"" + originalOrderId + "\""
+                + ", :instrument \"" + instrument + "\""
                 + ", :fill-price " + fillPrice
+                + ", :stop-reference-price " + o.getStopReferencePrice().longValue()
+                + ", :stop-offset " + o.getStopLossOffset().longValue()
+//                + ", :take-profit-offset" + o.getStopProfitOffset().longValue()
                 + ", :quantity " + quantity
                 + ", :filled-quantity " + filledQuantity
                 + ", :cancelled-quantity " + cancelledQuantity
-                + ", :instrument \"" + instrument + "\""
                 + ", :commission " + commission
                 + ", :completed? " + complete + "}";
     }
