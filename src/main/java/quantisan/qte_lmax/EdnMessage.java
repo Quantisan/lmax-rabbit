@@ -18,12 +18,12 @@ public final class EdnMessage {
         String lmaxOrderType = order.getOrderType().toString();
         String orderId = order.getInstructionId();
         String originalOrderId = order.getOriginalInstructionId();
-        String fillPrice = exe.getPrice().toString();
-        String quantity = order.getQuantity().toString();
-        String filledQuantity = order.getFilledQuantity().toString();
-        String cancelledQuantity = order.getCancelledQuantity().toString();
+        Long fillPrice = exe.getPrice().longValue();
+        Long quantity = order.getQuantity().longValue();
+        Long filledQuantity = order.getFilledQuantity().longValue();
+        Long cancelledQuantity = order.getCancelledQuantity().longValue();
         String instrument = Instrument.toName(order.getInstrumentId());
-        String commission = order.getCommission().toString();
+        Long commission = order.getCommission().longValue();
         boolean complete = isOrderComplete(order);
 
         return "{:message-type :execution-event" +
@@ -32,12 +32,12 @@ public final class EdnMessage {
                 + ", :lmax-order-id \"" + lmaxOrderId + "\""
                 + ", :order-id \"" + orderId + "\""
                 + ", :original-order-id \"" + originalOrderId + "\""
-                + ", :fill-price \"" + fillPrice + "\""
-                + ", :quantity \"" + quantity + "\""
-                + ", :filled-quantity \"" + filledQuantity + "\""
-                + ", :cancelled-quantity \"" + cancelledQuantity + "\""
+                + ", :fill-price " + fillPrice
+                + ", :quantity " + quantity
+                + ", :filled-quantity " + filledQuantity
+                + ", :cancelled-quantity " + cancelledQuantity
                 + ", :instrument \"" + instrument + "\""
-                + ", :commission \"" + commission + "\""
+                + ", :commission " + commission
                 + ", :completed? " + complete + "}";
     }
 

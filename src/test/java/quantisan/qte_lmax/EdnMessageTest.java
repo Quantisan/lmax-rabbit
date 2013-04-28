@@ -20,7 +20,7 @@ public class EdnMessageTest {
 
             @Override
             public FixedPointNumber getPrice() {
-                return FixedPointNumber.valueOf("1.300");
+                return FixedPointNumber.valueOf("1.318190");
             }
 
             @Override
@@ -83,7 +83,7 @@ public class EdnMessageTest {
 
                     @Override
                     public FixedPointNumber getStopReferencePrice() {
-                        return FixedPointNumber.valueOf("1.300");
+                        return FixedPointNumber.valueOf("1.318190");
                     }
 
                     @Override
@@ -103,7 +103,7 @@ public class EdnMessageTest {
 
                     @Override
                     public FixedPointNumber getCommission() {
-                        return FixedPointNumber.valueOf("0.030");
+                        return FixedPointNumber.valueOf("13.21265");
                     }
                 };
             }
@@ -116,8 +116,8 @@ public class EdnMessageTest {
 
         assertEquals("{:message-type :execution-event," + " :user-id \"paul\"," +
                 " :lmax-order-type \"STOP_LOSS_MARKET_ORDER\", :lmax-order-id \"ABC123\", :order-id \"my_order_1\"," +
-                " :original-order-id \"my_order_1_original\", :fill-price \"1.3\", :quantity \"1\"," +
-                " :filled-quantity \"1\", :cancelled-quantity \"0\", :instrument \"EURUSD\", :commission \"0.03\"," +
+                " :original-order-id \"my_order_1_original\", :fill-price 1318190, :quantity 1000000," +
+                " :filled-quantity 1000000, :cancelled-quantity 0, :instrument \"EURUSD\", :commission 13212650," +
                 " :completed? true}",
                 EdnMessage.executionEvent(exec));
     }
