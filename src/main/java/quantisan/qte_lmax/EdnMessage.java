@@ -45,11 +45,11 @@ public final class EdnMessage {
         return "{:message-type :position-event" +
                 ", :user-id \"" + ThinBot.USER_NAME + "\"" +
                 ", :instrument \"" + Instrument.toName(pe.getInstrumentId()) + "\"" +
-                ", :valuation \"" + pe.getValuation() + "\"" +
-                ", :short-unfilled-cost \"" + pe.getShortUnfilledCost() + "\"" +
-                ", :long-unfilled-cost \"" + pe.getLongUnfilledCost() + "\"" +
-                ", :quantity \"" + pe.getOpenQuantity() + "\"" +
-                ", :cumulative-cost \"" + pe.getCumulativeCost() + "\"" +
-                ", :open-cost \"" + pe.getOpenCost() + "\"}";
+                ", :valuation " + pe.getValuation().longValue() +
+                ", :short-unfilled-cost " + pe.getShortUnfilledCost().longValue() +
+                ", :long-unfilled-cost " + pe.getLongUnfilledCost().longValue() +
+                ", :quantity " + pe.getOpenQuantity().longValue() +
+                ", :cumulative-cost " + pe.getCumulativeCost().longValue() +
+                ", :open-cost " + pe.getOpenCost().longValue() + "}";
     }
 }
