@@ -1,9 +1,11 @@
 package quantisan.qte_lmax;
 
 import com.lmax.api.FixedPointNumber;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 public class OrderTest {
     @Test
@@ -32,4 +34,12 @@ public class OrderTest {
         assertEquals(Order.OrderType.AMEND_STOP, Order.parseOrderType("{:order-type :amend-stop}"));
         assertEquals(Order.OrderType.UNKNOWN, Order.parseOrderType("{}"));
     }
+
+    @Test @Ignore // not done yet
+    public void testExecute() throws Exception {
+        String message = "{:instrument :eurusd, :order-id 1892131401901743, :quantity 0.1, :stop-loss-offset 28, :order-type :market}";
+        Order order = new Order(null, null, message);
+        order.execute();
+    }
+
 }
