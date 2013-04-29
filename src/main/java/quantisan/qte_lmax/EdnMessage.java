@@ -7,9 +7,13 @@ import com.lmax.api.position.PositionEvent;
 public final class EdnMessage {
     private EdnMessage() {}
 
-    private static boolean isOrderComplete(com.lmax.api.order.Order order)
+    private static Boolean isOrderComplete(com.lmax.api.order.Order order)
     {
-        long completedQuantity = order.getFilledQuantity().longValue() + order.getCancelledQuantity().longValue();
+        Long completedQuantity;
+        try {
+            completedQuantity= order.getFilledQuantity().longValue() + order.getCancelledQuantity().longValue();
+        } catch(NullPointerException e) { return null; }
+
         return order.getQuantity().longValue() == completedQuantity;
     }
 
@@ -26,13 +30,13 @@ public final class EdnMessage {
         String lmaxOrderType = o.getOrderType().toString();
         String orderId = o.getInstructionId();
         String originalOrderId = o.getOriginalInstructionId();
-        Long fillPrice = exe.getPrice().longValue();
-        Long quantity = o.getQuantity().longValue();
-        Long filledQuantity = o.getFilledQuantity().longValue();
-        Long cancelledQuantity = o.getCancelledQuantity().longValue();
+        Long fillPrice = safeLongValue(exe.getPrice());
+        Long quantity = safeLongValue(o.getQuantity());
+        Long filledQuantity = safeLongValue(o.getFilledQuantity());
+        Long cancelledQuantity = safeLongValue(o.getCancelledQuantity());
         String instrument = Instrument.toName(o.getInstrumentId());
-        Long commission = o.getCommission().longValue();
-        boolean complete = isOrderComplete(o);
+        Long commission = safeLongValue(o.getCommission());
+        Boolean complete = isOrderComplete(o);
 
         return "{:message-type :execution-event" +
                 ", :user-id \"" + ThinBot.USER_NAME + "\""
