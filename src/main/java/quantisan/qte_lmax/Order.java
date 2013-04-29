@@ -26,6 +26,7 @@ public class Order {
     private final long instrumentId;
     private final FixedPointNumber quantity;
     private final FixedPointNumber stopLossOffset;
+    private final FixedPointNumber takeProfitOffset;
     private final Channel channel;
 
     private enum OrderState { NONE, FAIL, PENDING }
@@ -45,6 +46,7 @@ public class Order {
         Keyword instrument = (Keyword)m.get(newKeyword("instrument"));
         instrumentId = Instrument.toId(instrument.getName());     // TODO handle possible null val
         stopLossOffset = FixedPointNumber.valueOf((Long)m.get(newKeyword("stop-loss-offset")));
+        takeProfitOffset = FixedPointNumber.valueOf((Long)m.get(newKeyword("take-profit-offset")));
 
         Object buffer = m.get(newKeyword("quantity"));      // quantity is null for amend order
         if (buffer != null)
@@ -72,8 +74,8 @@ public class Order {
 
     public void execute() {
         if (getOrderState() == OrderState.NONE && getOrderType() == OrderType.MARKET) {
-            logger.info("Placing market orderId: {}, instrumentId: {}, quantity: {}, stopLossOffset: {}.", orderId, instrumentId, quantity, stopLossOffset);
-            session.placeMarketOrder(new MarketOrderSpecification(instrumentId, orderId, quantity, TimeInForce.IMMEDIATE_OR_CANCEL, stopLossOffset, null),
+            logger.info("Placing market orderId: {}, instrumentId: {}, quantity: {}, stopLossOffset: {}, takeProfitOffset: {}.", orderId, instrumentId, quantity, stopLossOffset, takeProfitOffset);
+            session.placeMarketOrder(new MarketOrderSpecification(instrumentId, orderId, quantity, TimeInForce.IMMEDIATE_OR_CANCEL, stopLossOffset, takeProfitOffset),
                     new OrderCallback() {       // TODO use same ordercallback impl class
                         public void onSuccess(String placeOrderInstructionId)
                         {
@@ -182,6 +184,10 @@ public class Order {
 
     public FixedPointNumber getStopLossOffset() {
         return stopLossOffset;
+    }
+
+    public FixedPointNumber getTakeProfitOffset() {
+        return takeProfitOffset;
     }
 
     public OrderState getOrderState() {

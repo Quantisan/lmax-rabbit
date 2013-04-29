@@ -10,22 +10,24 @@ import static org.junit.Assert.assertNull;
 public class OrderTest {
     @Test
     public void testMarketOrderConstructor() throws Exception {
-        String message = "{:instrument :eurusd, :order-id \"my_order_1\", :quantity 0.1, :stop-loss-offset 10, :order-type :market}";
+        String message = "{:instrument :eurusd, :order-id \"my_order_1\", :quantity 0.1, :stop-loss-offset 10, :take-profit-offset 20, :order-type :market}";
         Order order = new Order(null, null, message);
         assertEquals(4001, order.getInstrumentId());
         assertEquals("my_order_1", order.getOrderId());
         assertEquals("0.1", order.getQuantity().toString());
         assertEquals("0.00001", order.getStopLossOffset().toString());
+        assertEquals("0.00002", order.getTakeProfitOffset().toString());
     }
 
     @Test
     public void testAmendOrderConstructor() throws Exception {
-        String message = "{:instrument :eurusd, :order-id \"my_order_1\", :stop-loss-offset 20, :order-type :amend-stop}";
+        String message = "{:instrument :eurusd, :order-id \"my_order_1\", :stop-loss-offset 20, :take-profit-offset 30, :order-type :amend-stop}";
         Order order = new Order(null, null, message);
         assertEquals(4001, order.getInstrumentId());
         assertEquals("my_order_1", order.getOrderId());
         assertEquals(FixedPointNumber.ZERO, order.getQuantity());
         assertEquals("0.00002", order.getStopLossOffset().toString());
+        assertEquals("0.00003", order.getTakeProfitOffset().toString());
     }
 
     @Test
