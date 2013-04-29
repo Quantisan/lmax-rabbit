@@ -8,6 +8,7 @@ import com.lmax.api.position.PositionEvent;
 import org.junit.Test;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNull;
 
 public class EdnMessageTest {
     @Test
@@ -171,5 +172,11 @@ public class EdnMessageTest {
                 " :short-unfilled-cost 0, :long-unfilled-cost 0, :quantity -10100000," +
                 " :cumulative-cost -132279560000, :open-cost -132329190000}",
                 EdnMessage.positionEvent(pe));
+    }
+
+    @Test
+    public void testSafeLongValue() throws Exception {
+        assertNull(EdnMessage.safeLongValue(null));
+        assertEquals(10000000L, (long)EdnMessage.safeLongValue(FixedPointNumber.TEN));
     }
 }
