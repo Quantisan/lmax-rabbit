@@ -44,7 +44,7 @@ public final class EdnMessage {
                 + ", :fill-price " + fillPrice
                 + ", :stop-reference-price " + safeLongValue(o.getStopReferencePrice())
                 + ", :stop-offset " + safeLongValue(o.getStopLossOffset())
-                + ", :take-profit-offset" + safeLongValue(o.getStopProfitOffset())
+                + ", :take-profit-offset " + safeLongValue(o.getStopProfitOffset())
                 + ", :quantity " + quantity
                 + ", :filled-quantity " + filledQuantity
                 + ", :cancelled-quantity " + cancelledQuantity
