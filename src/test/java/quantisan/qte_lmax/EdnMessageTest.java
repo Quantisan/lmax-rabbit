@@ -125,6 +125,119 @@ public class EdnMessageTest {
     }
 
     @Test
+    public void testExecutionEventWithNull() throws Exception {
+        Execution exec = new Execution() {
+            @Override
+            public long getExecutionId() {
+                return 100;
+            }
+
+            @Override
+            public FixedPointNumber getPrice() {
+                return FixedPointNumber.valueOf("1.318190");
+            }
+
+            @Override
+            public FixedPointNumber getQuantity() {
+                return FixedPointNumber.valueOf("1.0");
+            }
+
+            @Override
+            public Order getOrder() {
+                return new Order() {
+                    @Override
+                    public String getInstructionId() {
+                        return "my_order_1";
+                    }
+
+                    @Override
+                    public String getOriginalInstructionId() {
+                        return "my_order_1_original";
+                    }
+
+                    @Override
+                    public String getOrderId() {
+                        return "ABC123";
+                    }
+
+                    @Override
+                    public long getInstrumentId() {
+                        return 4001;
+                    }
+
+                    @Override
+                    public long getAccountId() {
+                        return 12345;
+                    }
+
+                    @Override
+                    public OrderType getOrderType() {
+                        return OrderType.STOP_LOSS_MARKET_ORDER;
+                    }
+
+                    @Override
+                    public TimeInForce getTimeInForce() {
+                        return TimeInForce.IMMEDIATE_OR_CANCEL;
+                    }
+
+                    @Override
+                    public FixedPointNumber getQuantity() {
+                        return FixedPointNumber.valueOf("1.0");
+                    }
+
+                    @Override
+                    public FixedPointNumber getFilledQuantity() {
+                        return FixedPointNumber.valueOf("1.0");
+                    }
+
+                    @Override
+                    public FixedPointNumber getLimitPrice() {
+                        return null;
+                    }
+
+                    @Override
+                    public FixedPointNumber getStopReferencePrice() {
+                        return null;
+                    }
+
+                    @Override
+                    public FixedPointNumber getStopLossOffset() {
+                        return null;
+                    }
+
+                    @Override
+                    public FixedPointNumber getStopProfitOffset() {
+                        return null;
+                    }
+
+                    @Override
+                    public FixedPointNumber getCancelledQuantity() {
+                        return FixedPointNumber.ZERO;
+                    }
+
+                    @Override
+                    public FixedPointNumber getCommission() {
+                        return FixedPointNumber.valueOf("13.21265");
+                    }
+                };
+            }
+
+            @Override
+            public FixedPointNumber getCancelledQuantity() {
+                return FixedPointNumber.ZERO;
+            }
+        };
+
+        assertEquals("{:message-type :execution-event," + " :user-id \"demo\"," +
+                " :lmax-order-type \"STOP_LOSS_MARKET_ORDER\", :lmax-order-id \"ABC123\", :order-id \"my_order_1\"," +
+                " :original-order-id \"my_order_1_original\", :instrument \"EURUSD\", :fill-price 1318190," +
+                " :stop-reference-price nil, :stop-offset nil, :quantity 1000000," +
+                " :filled-quantity 1000000, :cancelled-quantity 0, :commission 13212650," +
+                " :completed? true}",
+                EdnMessage.executionEvent(exec));
+    }
+
+    @Test
     public void testPositionEvent() throws Exception {
         PositionEvent pe = new PositionEvent() {
             @Override
