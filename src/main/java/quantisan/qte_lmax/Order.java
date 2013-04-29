@@ -44,7 +44,8 @@ public class Order {
         orderId = m.get(newKeyword("order-id")).toString(); // TODO log error if order-id contains space
         Keyword instrument = (Keyword)m.get(newKeyword("instrument"));
         instrumentId = Instrument.toId(instrument.getName());     // TODO handle possible null val
-        stopLossOffset = FixedPointNumber.valueOf(m.get(newKeyword("stop-loss-offset")).toString());
+        stopLossOffset = FixedPointNumber.valueOf((Long)m.get(newKeyword("stop-loss-offset")));
+
         Object buffer = m.get(newKeyword("quantity"));      // quantity is null for amend order
         if (buffer != null)
             quantity = FixedPointNumber.valueOf(buffer.toString());

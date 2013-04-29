@@ -13,7 +13,7 @@ public class OrderTest {
         assertEquals(4001, order.getInstrumentId());
         assertEquals("my_order_1", order.getOrderId());
         assertEquals("0.1", order.getQuantity().toString());
-        assertEquals("10", order.getStopLossOffset().toString());
+        assertEquals("0.00001", order.getStopLossOffset().toString());
     }
 
     @Test
@@ -23,7 +23,7 @@ public class OrderTest {
         assertEquals(4001, order.getInstrumentId());
         assertEquals("my_order_1", order.getOrderId());
         assertEquals(FixedPointNumber.ZERO, order.getQuantity());
-        assertEquals("20", order.getStopLossOffset().toString());
+        assertEquals("0.00002", order.getStopLossOffset().toString());
     }
 
     @Test
