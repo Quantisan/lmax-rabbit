@@ -72,7 +72,7 @@ public class Order {
 
     public void execute() {
         if (getOrderState() == OrderState.NONE && getOrderType() == OrderType.MARKET) {
-            logger.info("Placing market orderId, instrumentId, quantity, stopLossOffset:", orderId, instrumentId, quantity, stopLossOffset);
+            logger.info("Placing market orderId: {}, instrumentId: {}, quantity: {}, stopLossOffset: {}.", orderId, instrumentId, quantity, stopLossOffset);
             session.placeMarketOrder(new MarketOrderSpecification(instrumentId, orderId, quantity, TimeInForce.IMMEDIATE_OR_CANCEL, stopLossOffset, null),
                     new OrderCallback() {       // TODO use same ordercallback impl class
                         public void onSuccess(String placeOrderInstructionId)
@@ -122,7 +122,7 @@ public class Order {
 
                     });
         } else if (getOrderType() == OrderType.AMEND_STOP) {
-            logger.info("Ammending orderId, instrumentId, stopLossOffset:", orderId, instrumentId, stopLossOffset);
+            logger.info("Amending orderId: {}, instrumentId: {}, stopLossOffset: {}.", orderId, instrumentId, stopLossOffset);
             session.amendStops(new AmendStopsRequest(instrumentId, orderId, orderId, stopLossOffset, null), new OrderCallback()
             {
                 public void onSuccess(String amendRequestInstructionId)
