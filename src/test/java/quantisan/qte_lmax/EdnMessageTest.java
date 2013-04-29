@@ -118,7 +118,7 @@ public class EdnMessageTest {
         assertEquals("{:message-type :execution-event," + " :user-id \"demo\"," +
                 " :lmax-order-type \"STOP_LOSS_MARKET_ORDER\", :lmax-order-id \"ABC123\", :order-id \"my_order_1\"," +
                 " :original-order-id \"my_order_1_original\", :instrument \"EURUSD\", :fill-price 1318190," +
-                " :stop-reference-price 1318190, :stop-offset 10000, :quantity 1000000," +
+                " :stop-reference-price 1318190, :stop-offset 10000, :take-profit-offset nil, :quantity 1000000," +
                 " :filled-quantity 1000000, :cancelled-quantity 0, :commission 13212650," +
                 " :completed? true}",
                 EdnMessage.executionEvent(exec));
@@ -231,7 +231,7 @@ public class EdnMessageTest {
         assertEquals("{:message-type :execution-event," + " :user-id \"demo\"," +
                 " :lmax-order-type \"STOP_LOSS_MARKET_ORDER\", :lmax-order-id \"ABC123\", :order-id \"my_order_1\"," +
                 " :original-order-id \"my_order_1_original\", :instrument \"EURUSD\", :fill-price 1318190," +
-                " :stop-reference-price nil, :stop-offset nil, :quantity 1000000," +
+                " :stop-reference-price nil, :stop-offset nil, :take-profit-offset nil, :quantity 1000000," +
                 " :filled-quantity 1000000, :cancelled-quantity 0, :commission 13212650," +
                 " :completed? true}",
                 EdnMessage.executionEvent(exec));
