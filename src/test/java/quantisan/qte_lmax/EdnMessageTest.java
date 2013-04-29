@@ -179,4 +179,11 @@ public class EdnMessageTest {
         assertNull(EdnMessage.safeLongValue(null));
         assertEquals(10000000L, (long)EdnMessage.safeLongValue(FixedPointNumber.TEN));
     }
+
+    @Test
+    public void testEdnPrinter() throws Exception {
+        assertEquals("nil", EdnMessage.ednPrinter(null));
+        assertEquals("10", EdnMessage.ednPrinter(10L));
+        assertEquals("\"test message\"", EdnMessage.ednPrinter("test message"));
+    }
 }
