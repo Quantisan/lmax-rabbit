@@ -55,7 +55,9 @@ public class ThinBot implements LoginCallback,
     }
 
     public static void main(String[] args) {
+        logger.info("Starting main.");
         loginLmax(brokerUrl);
+        logger.info("Exiting main.");
     }
 
     @Override
