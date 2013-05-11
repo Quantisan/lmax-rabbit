@@ -1,21 +1,11 @@
 <configuration>
-    <appender name="ROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>log/qte-lmax.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-          <!-- rollover monthly -->
-          <fileNamePattern>log/archive/qte-lmax-%d{yyyy-MM-dd}.%i.gz</fileNamePattern>
-          <timeBasedFileNamingAndTriggeringPolicy
-                class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-            <!-- or whenever the file size reaches 100MB -->
-            <maxFileSize>100MB</maxFileSize>
-          </timeBasedFileNamingAndTriggeringPolicy>
-        </rollingPolicy>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
           <pattern>%date [%thread] %-5level %logger{35} - %msg%n</pattern>
         </encoder>
     </appender>
 
     <root level="INFO">
-    <appender-ref ref="ROLLING" />
+    <appender-ref ref="STDOUT" />
     </root>
 </configuration>
