@@ -74,6 +74,7 @@
                             <attachToBuild>true</attachToBuild>
                             <!-- Optional, default is "onejar" -->
                             <classifier>onejar</classifier>
+                            <mainClass>quantisan.qte_lmax.ThinBot</mainClass>
                         </configuration>
                         <goals>
                             <goal>one-jar</goal>
