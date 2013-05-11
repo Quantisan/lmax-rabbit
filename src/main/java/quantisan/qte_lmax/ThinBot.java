@@ -297,6 +297,7 @@ public class ThinBot implements LoginCallback,
     {
         if (isWeekendNow() && e instanceof ConnectException)   // TODO reconnect on Sunday
         {
+            logger.info("Weekend server maintenance. Trying to pause program.");
             session.stop();
             session.logout(new Callback() {
                 @Override
@@ -306,11 +307,12 @@ public class ThinBot implements LoginCallback,
 
                 @Override
                 public void onFailure(FailureResponse failureResponse) {
+                    // TODO fix weekend cannot logout because server is done, how to return to main?
                 }
             });
+        } else {
+            logger.error("Stream failure.", e);
         }
-
-        logger.error("Stream failure.", e);
     }
 
     protected static boolean isWeekendNow() { // TODO move to helper class
