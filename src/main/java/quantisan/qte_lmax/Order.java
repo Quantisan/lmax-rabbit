@@ -124,8 +124,8 @@ public class Order {
 
                     });
         } else if (getOrderType() == OrderType.AMEND_STOP) {
-            logger.info("Amending orderId: {}, instrumentId: {}, stopLossOffset: {}.", orderId, instrumentId, stopLossOffset);
-            session.amendStops(new AmendStopsRequest(instrumentId, orderId, orderId, stopLossOffset, null), new OrderCallback()
+            logger.info("Amending orderId: {}, instrumentId: {}, stopLossOffset: {}, takeProfitOffset.", orderId, instrumentId, stopLossOffset, takeProfitOffset);
+            session.amendStops(new AmendStopsRequest(instrumentId, orderId, orderId, stopLossOffset, takeProfitOffset), new OrderCallback()
             {
                 public void onSuccess(String amendRequestInstructionId)
                 {
