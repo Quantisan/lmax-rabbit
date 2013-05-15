@@ -51,7 +51,7 @@ public class ThinBot implements LoginCallback,
     public static void loginLmax(String url) {
         LmaxApi lmaxApi = new LmaxApi(url);
         ThinBot thinBot = new ThinBot();
-        lmaxApi.login(new LoginRequest("quantisan2", "J63VFqmXBaQStdAxKnD7", LoginRequest.ProductType.CFD_DEMO), thinBot);
+        lmaxApi.login(new LoginRequest("ETDemo1", "Demo12345", LoginRequest.ProductType.CFD_DEMO), thinBot);
     }
 
     public static void main(String[] args) {
