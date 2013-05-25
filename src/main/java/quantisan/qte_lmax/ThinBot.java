@@ -56,7 +56,10 @@ public class ThinBot implements LoginCallback,
 
     public static void main(String[] args) {
         logger.info("Starting main.");
-        loginLmax(brokerUrl);
+        if (!isWeekendNow())
+            loginLmax(brokerUrl);
+        else
+            logger.warn("Disabled: Not trying to log in because it is weekend.");
         logger.info("Exiting main.");
     }
 
