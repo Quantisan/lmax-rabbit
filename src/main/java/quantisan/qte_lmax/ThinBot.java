@@ -56,10 +56,10 @@ public class ThinBot implements LoginCallback,
 
     public static void main(String[] args) {
         logger.info("Starting main.");
-        if (!isWeekendNow())
-            loginLmax(brokerUrl);
+        if (!isSaturday())
+            loginLmax(brokerUrl);  // TODO catch exception instead and exit if it's weekend
         else
-            logger.warn("Disabled: Not trying to log in because it is weekend.");
+            logger.warn("Disabled: Not trying to log in because it is Saturday.");
         logger.info("Exiting main.");
     }
 
@@ -298,7 +298,7 @@ public class ThinBot implements LoginCallback,
     @Override
     public void notifyStreamFailure(Exception e)
     {
-        if (isWeekendNow() && e instanceof ConnectException)   // TODO reconnect on Sunday
+        if (isSaturday() && e instanceof ConnectException)   // TODO reconnect on Sunday
         {
             logger.info("Weekend server maintenance. Trying to pause program.");
             session.stop();
@@ -318,11 +318,10 @@ public class ThinBot implements LoginCallback,
         }
     }
 
-    protected static boolean isWeekendNow() { // TODO move to helper class
+    protected static boolean isSaturday() { // TODO move to helper class
         Calendar c = Calendar.getInstance();
         int day = c.get(Calendar.DAY_OF_WEEK);
-        int hour = c.get(Calendar.HOUR_OF_DAY);
-        return (day == 1 || day ==7);
+        return (day == Calendar.SATURDAY);
     }
 
     @Override
